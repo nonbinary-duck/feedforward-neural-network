@@ -7,6 +7,9 @@
 #include <random>
 #include <vector>
 
+#include "TrainingExample.hpp"
+
+
 namespace ai_assignment
 {
     /**
@@ -25,26 +28,31 @@ namespace ai_assignment
              * @param inputCount The number of inputs to the neuron, excluding the bias/threshold
              * @param activationFunction The activation function to apply to the output
              */
-            inline Neuron(size_t inputCount, const std::function<double(double)> &activationFunction) noexcept :
-                Neuron(inputCount, )
+            Neuron(size_t inputCount, const std::function<double(double)> &activationFunction) noexcept;
 
             /**
-             * @brief Construct a new 'Neuron'
+             * @brief Construct a new 'Neuron' and copy the weights into the heap
              * 
              * @param inputCount The number of inputs to the neuron, excluding the bias/threshold
              * @param weights The starting weights for the 'Neuron'; gets coppied onto the heap and must have an extra 'one' for the bias/threshold
              * @param activationFunction The activation function to apply to the output
              */
-            inline Neuron(size_t inputCount, std::vector<double> &weights, const std::function<double(double)> &activationFunction) noexcept :
-                InputCount(inputCount),
-                m_ActivationFunction(activationFunction),
-                m_Weights(new auto(weights))
-            {
-                // Check that the weights arg is ok
-                if (weights.size() == inputCount) throw std::out_of_range("Invalid number of Weights provided, must include an 'extra' weight for the bias/threshold");
-                else if (weights.size() != inputCount + 1) throw std::out_of_range("Invalid number of Weights provided");
-            }
+            Neuron(size_t inputCount, std::vector<double> &weights, const std::function<double(double)> &activationFunction) noexcept;
 
+            /**
+             * @brief Construct a new 'Neuron'
+             * 
+             * @param inputCount The number of inputs to the neuron, excluding the bias/threshold
+             * @param weights The starting weights for the 'Neuron'; must have an extra 'one' for the bias/threshold
+             * @param activationFunction The activation function to apply to the output
+             */
+            Neuron(size_t inputCount, std::vector<double> *weights, const std::function<double(double)> &activationFunction) noexcept;
+
+            /**
+             * @brief Copy ctor
+             * 
+             * @param obj object to copy
+             */
             inline Neuron(const Neuron &obj) noexcept : InputCount(obj.InputCount), m_Weights(obj.m_Weights), m_ActivationFunction(obj.m_ActivationFunction)
             {}
 
@@ -71,19 +79,16 @@ namespace ai_assignment
              * @param inputs The inputs to modify, including, as the last value, the bias/threshold
              * @return The output of the neuron
              */
-            inline double ProcessInputs(std::vector<double> &inputs) const
-            {
-                if (inputs.size() != this->InputCount + 1) throw std::invalid_argument("Inputs has incorrect size");
+            double ProcessInputs(std::vector<double> &inputs) const;
 
-                double output;
-
-                for (size_t i = 0; i < inputs.size(); i++)
-                {
-                    output += inputs[i] * this->m_Weights->at(i);
-                }
-
-                return this->m_ActivationFunction(output);
-            }
+            /**
+             * @brief Stochastic gradient descent method of training a neuron. Stochastic meaning that we work on the live values
+             * 
+             * @param trainingValues The training values
+             * @param learningRate The learning rate, or speed at which weights are modified
+             * @return double 
+             */
+            double TrainNeuron(std::vector<TrainingExample> trainingExamples, double learningRate) noexcept;
 
         protected:
 
@@ -104,20 +109,9 @@ namespace ai_assignment
             /**
              * @brief Produces small random values (-0.05, 0.05) to initalise the weights
              * 
-             * @return std::vector<double>* 
+             * @return std::vector<double>* The randomly generate weights, with n (inputCount) + 1 values, where n + 1 is 1.0
              */
-            virtual std::vector<double> *GenerateRandomWeights(size_t weightCount)
-            {
-                auto *weights = new std::vector<double>(weightCount + 1);
-
-                auto a = std::uniform_real_distribution<double>();
-
-                for (size_t i = 0; i < weightCount; i++)
-                {
-                    weights[i] = a() std::rand();
-                }
-                
-            }
+            virtual std::vector<double> *GenerateRandomWeights(size_t inputCount);
     };
     
 } // End namespace ai_assignment

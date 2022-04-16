@@ -1,6 +1,6 @@
 #pragma once
-#ifndef H_530093_SRC_NEURON
-#define H_530093_SRC_NEURON 1
+#ifndef H_530093_SRC_ACTIVATION_FUNCTOINS
+#define H_530093_SRC_ACTIVATION_FUNCTOINS 1
 
 #include <cmath>
 
@@ -31,4 +31,4 @@ namespace ai_assignment::activation_functions
 } // End namespace ai_assignment::activation_functions
 
 
-#endif // H_530093_SRC_NEURON
+#endif // H_530093_SRC_ACTIVATION_FUNCTOINS
