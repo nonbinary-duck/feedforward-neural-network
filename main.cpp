@@ -1,4 +1,7 @@
+#include <ctime>
+#include <random>
 #include <iostream>
+#include <functional>
 
 using std::cout, std::endl;
 
@@ -8,7 +11,10 @@ using namespace ai_assignment;
 
 int main()
 {
-    auto f = activation_functions::sigmoidFunc;
+    // Initalise a 'random' seed for std::rand
+    std::srand( std::time(0) );
+    
+    const std::function<double(double)> &f = activation_functions::sigmoidFunc;
 
     cout << f(0.9l) << endl;
     cout << f(0.2l) << endl;

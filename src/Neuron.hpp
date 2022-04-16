@@ -4,6 +4,7 @@
 
 #include <functional>
 #include <stdexcept>
+#include <random>
 #include <vector>
 
 namespace ai_assignment
@@ -17,6 +18,16 @@ namespace ai_assignment
 
             // Constructors
 
+
+            /**
+             * @brief Construct a new 'Neuron' and generate small random values to initiate the weights to (except the bias weight, which will be 1.0)
+             * 
+             * @param inputCount The number of inputs to the neuron, excluding the bias/threshold
+             * @param activationFunction The activation function to apply to the output
+             */
+            inline Neuron(size_t inputCount, const std::function<double(double)> &activationFunction) noexcept :
+                Neuron(inputCount, )
+
             /**
              * @brief Construct a new 'Neuron'
              * 
@@ -24,7 +35,7 @@ namespace ai_assignment
              * @param weights The starting weights for the 'Neuron'; gets coppied onto the heap and must have an extra 'one' for the bias/threshold
              * @param activationFunction The activation function to apply to the output
              */
-            inline Neuron(size_t inputCount, std::vector<double> &weights, std::function<double(double)> *activationFunction) noexcept :
+            inline Neuron(size_t inputCount, std::vector<double> &weights, const std::function<double(double)> &activationFunction) noexcept :
                 InputCount(inputCount),
                 m_ActivationFunction(activationFunction),
                 m_Weights(new auto(weights))
@@ -71,10 +82,12 @@ namespace ai_assignment
                     output += inputs[i] * this->m_Weights->at(i);
                 }
 
-                return (*this->m_ActivationFunction)(output);
+                return this->m_ActivationFunction(output);
             }
 
         protected:
+
+            // Properties
 
             /**
              * @brief A list of weights to apply to an input, including the weight for the bias (which should probably be 1)
@@ -84,7 +97,27 @@ namespace ai_assignment
             /**
              * @brief The activation function to apply to the output
              */
-            std::function<double(double)> *m_ActivationFunction;
+            const std::function<double(double)> &m_ActivationFunction;
+
+            // Functions
+
+            /**
+             * @brief Produces small random values (-0.05, 0.05) to initalise the weights
+             * 
+             * @return std::vector<double>* 
+             */
+            virtual std::vector<double> *GenerateRandomWeights(size_t weightCount)
+            {
+                auto *weights = new std::vector<double>(weightCount + 1);
+
+                auto a = std::uniform_real_distribution<double>();
+
+                for (size_t i = 0; i < weightCount; i++)
+                {
+                    weights[i] = a() std::rand();
+                }
+                
+            }
     };
     
 } // End namespace ai_assignment

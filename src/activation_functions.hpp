@@ -4,21 +4,28 @@
 
 #include <cmath>
 
+/**
+ * @brief Activation functions
+ */
 namespace ai_assignment::activation_functions
 {
-    inline double stepFunc(double i)
+    inline double stepFunc(double net)
     {
-        return (i >= 0);
+        return (net >= 0.0l);
     }
 
-    inline double tanhFunc(double i)
+    inline double tanhFunc(double net)
     {
-        return ( std::exp(i) - std::exp(-i) ) / ( std::exp(i) + std::exp(-i) );
+        //  eⁿ - e⁻ⁿ
+        // ─────────
+        //  eⁿ + e⁻ⁿ
+
+        return ( std::exp(net) - std::exp(-net) ) / ( std::exp(net) + std::exp(-net) );
     }
 
-    inline double sigmoidFunc(double i)
+    inline double sigmoidFunc(double net)
     {
-        return 1.0l / ( 1.0l + std::exp(-i) );
+        return 1.0l / ( 1.0l + std::exp(-net) );
     }
 
 } // End namespace ai_assignment::activation_functions
