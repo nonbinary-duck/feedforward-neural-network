@@ -4,7 +4,7 @@ namespace ai_assignment
 {
     // Public constructors
 
-    Neuron::Neuron(size_t inputCount, const std::function<double(double)> &activationFunction) noexcept :
+    Neuron::Neuron(size_t inputCount, const std::function<double(double)> &activationFunction) :
         Neuron(inputCount, this->GenerateRandomWeights(inputCount), activationFunction)
     {}
 
@@ -15,7 +15,7 @@ namespace ai_assignment
      * @param weights The starting weights for the 'Neuron'; gets coppied onto the heap and must have an extra 'one' for the bias/threshold
      * @param activationFunction The activation function to apply to the output
      */
-    Neuron::Neuron(size_t inputCount, std::vector<double> &weights, const std::function<double(double)> &activationFunction) noexcept :
+    Neuron::Neuron(size_t inputCount, std::vector<double> &weights, const std::function<double(double)> &activationFunction) :
         Neuron(inputCount, new auto(weights), activationFunction)
     {}
 
@@ -26,7 +26,7 @@ namespace ai_assignment
      * @param weights The starting weights for the 'Neuron'; must have an extra 'one' for the bias/threshold
      * @param activationFunction The activation function to apply to the output
      */
-    Neuron::Neuron(size_t inputCount, std::vector<double> *weights, const std::function<double(double)> &activationFunction) noexcept :
+    Neuron::Neuron(size_t inputCount, std::vector<double> *weights, const std::function<double(double)> &activationFunction) :
         InputCount(inputCount),
         m_ActivationFunction(activationFunction),
         m_Weights(weights)
