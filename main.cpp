@@ -24,10 +24,15 @@ int main()
 
     std::vector<TrainingExample> ex
     {
-        TrainingExample({1.0, 0.0}, 1.0)
+        TrainingExample({1.0, 0.0, 1.0}, 1.0)
     };
 
     n.TrainNeuron(ex, 0.05);
+
+    for (size_t i = 0; i < n.m_Weights->size(); i++)
+    {
+        cout << i << ": " << n.m_Weights->at(i) << endl;
+    }
 
     cout << n.ProcessInputs(inputs) << endl << endl;
 

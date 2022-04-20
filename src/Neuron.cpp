@@ -4,7 +4,8 @@ namespace ai_assignment
 {
     // Public constructors
 
-    Neuron::Neuron(size_t inputCount, const std::function<double(double)> &activationFunction) :
+
+    Neuron::Neuron(size_t inputCount, const std::function<double(const double&)> &activationFunction) :
         Neuron(inputCount, this->GenerateRandomWeights(inputCount), activationFunction)
     {}
 
@@ -36,7 +37,9 @@ namespace ai_assignment
         else if (weights->size() != inputCount + 1) throw std::out_of_range("Invalid number of Weights provided");
     }
 
+
     // Public Functions
+
 
     /**
         * @brief Proces the inputs into an output
@@ -60,10 +63,13 @@ namespace ai_assignment
 
     double Neuron::TrainNeuron(std::vector<TrainingExample> trainingExamples, double learningRate) noexcept
     {
+        // Loop over the training examples
         for (size_t i = 0; i < trainingExamples.size(); i++)
         {
+            // Makes it look neater
             auto &ex = trainingExamples[i];
 
+            // Fetch the result of the inputs
             double output = this->ProcessInputs(ex.inputs);
 
             for (size_t j = 0; j < this->InputCount; i++)
@@ -76,7 +82,9 @@ namespace ai_assignment
         return 1;
     }
 
+
     // Protected Functions
+
 
     std::vector<double> *Neuron::GenerateRandomWeights(size_t inputCount)
     {
