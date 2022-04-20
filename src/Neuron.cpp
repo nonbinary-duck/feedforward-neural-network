@@ -1,4 +1,5 @@
 #include "Neuron.hpp"
+#include <iostream>
 
 namespace ai_assignment
 {
@@ -72,8 +73,10 @@ namespace ai_assignment
             // Fetch the result of the inputs
             double output = this->ProcessInputs(ex.inputs);
 
-            for (size_t j = 0; j < this->InputCount; j++)
+            // Compute "for each linear unit weight wᵢ..."
+            for (size_t j = 0; j < this->InputCount + 1; j++)
             {
+                // Stochastic gradient descent
                 // wₙ += η(t - o) · xₙ
                 this->m_Weights->at(j) += learningRate * (ex.targetOutput - output) * ex.inputs[j];
             }
