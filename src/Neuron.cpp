@@ -5,7 +5,7 @@ namespace ai_assignment
     // Public constructors
 
 
-    Neuron::Neuron(size_t inputCount, const std::function<double(const double&)> &activationFunction) :
+    Neuron::Neuron(size_t inputCount, const activation_func_type activationFunction) :
         Neuron(inputCount, this->GenerateRandomWeights(inputCount), activationFunction)
     {}
 
@@ -16,7 +16,7 @@ namespace ai_assignment
      * @param weights The starting weights for the 'Neuron'; gets coppied onto the heap and must have an extra 'one' for the bias/threshold
      * @param activationFunction The activation function to apply to the output
      */
-    Neuron::Neuron(size_t inputCount, std::vector<double> &weights, const std::function<double(double)> &activationFunction) :
+    Neuron::Neuron(size_t inputCount, std::vector<double> &weights, const activation_func_type activationFunction) :
         Neuron(inputCount, new auto(weights), activationFunction)
     {}
 
@@ -27,7 +27,7 @@ namespace ai_assignment
      * @param weights The starting weights for the 'Neuron'; must have an extra 'one' for the bias/threshold
      * @param activationFunction The activation function to apply to the output
      */
-    Neuron::Neuron(size_t inputCount, std::vector<double> *weights, const std::function<double(double)> &activationFunction) :
+    Neuron::Neuron(size_t inputCount, std::vector<double> *weights, const activation_func_type activationFunction) :
         InputCount(inputCount),
         m_ActivationFunction(activationFunction),
         m_Weights(weights)
@@ -61,7 +61,7 @@ namespace ai_assignment
         return this->m_ActivationFunction(output);
     }
 
-    double Neuron::TrainNeuron(std::vector<TrainingExample> trainingExamples, double learningRate) noexcept
+    double Neuron::TrainNeuron(std::vector<TrainingExample> trainingExamples, double learningRate)
     {
         // Loop over the training examples
         for (size_t i = 0; i < trainingExamples.size(); i++)
@@ -72,7 +72,7 @@ namespace ai_assignment
             // Fetch the result of the inputs
             double output = this->ProcessInputs(ex.inputs);
 
-            for (size_t j = 0; j < this->InputCount; i++)
+            for (size_t j = 0; j < this->InputCount; j++)
             {
                 // wₙ += η(t - o) · xₙ
                 this->m_Weights->at(j) += learningRate * (ex.targetOutput - output) * ex.inputs[j];

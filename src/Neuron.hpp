@@ -12,6 +12,8 @@
 
 namespace ai_assignment
 {
+    typedef std::function<double(const double&)> activation_func_type;
+    
     /**
      * @brief An artificial 'neuron'
      */
@@ -28,7 +30,7 @@ namespace ai_assignment
              * @param inputCount The number of inputs to the neuron, excluding the bias/threshold
              * @param activationFunction The activation function to apply to the output
              */
-            Neuron(size_t inputCount, const std::function<double(const double&)> &activationFunction);
+            Neuron(size_t inputCount, const activation_func_type activationFunction);
 
             /**
              * @brief Construct a new 'Neuron' and copy the weights into the heap
@@ -37,7 +39,7 @@ namespace ai_assignment
              * @param weights The starting weights for the 'Neuron'; gets coppied onto the heap and must have an extra 'one' for the bias/threshold
              * @param activationFunction The activation function to apply to the output
              */
-            Neuron(size_t inputCount, std::vector<double> &weights, const std::function<double(double)> &activationFunction);
+            Neuron(size_t inputCount, std::vector<double> &weights, const activation_func_type activationFunction);
 
             /**
              * @brief Construct a new 'Neuron'
@@ -46,7 +48,7 @@ namespace ai_assignment
              * @param weights The starting weights for the 'Neuron'; must have an extra 'one' for the bias/threshold
              * @param activationFunction The activation function to apply to the output
              */
-            Neuron(size_t inputCount, std::vector<double> *weights, const std::function<double(double)> &activationFunction);
+            Neuron(size_t inputCount, std::vector<double> *weights, const activation_func_type activationFunction);
 
             /**
              * @brief Copy ctor
@@ -88,7 +90,7 @@ namespace ai_assignment
              * @param learningRate The learning rate, or speed at which weights are modified
              * @return double 
              */
-            double TrainNeuron(std::vector<TrainingExample> trainingExamples, double learningRate) noexcept;
+            double TrainNeuron(std::vector<TrainingExample> trainingExamples, double learningRate);
 
         // protected:
 
@@ -102,7 +104,7 @@ namespace ai_assignment
             /**
              * @brief The activation function to apply to the output
              */
-            const std::function<double(double)> &m_ActivationFunction;
+            const activation_func_type m_ActivationFunction;
 
             // Functions
 
