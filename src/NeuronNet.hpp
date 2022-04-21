@@ -4,6 +4,7 @@
 
 #include <vector>
 
+#include "Connection.hpp"
 #include "Neuron.hpp"
 
 
@@ -35,7 +36,7 @@ namespace ai_assignment
 
             // Functions
 
-
+            double ProcessInputs(std::vector<double> &inputs);
 
         protected:
 
@@ -44,12 +45,12 @@ namespace ai_assignment
             /**
              * @brief The architecture of the net
              */
-            std::vector<std::vector<Neuron>> m_Architecture;
+            std::vector<std::vector<Neuron*>> m_Architecture;
 
             /**
              * @brief A 'map' to connect the neurons
              */
-            std::vector<double*> m_ConnectionHeuristic;
+            std::vector<Connection*> m_ConnectionHeuristic;
 
             /**
              * @brief The number of inputs given
