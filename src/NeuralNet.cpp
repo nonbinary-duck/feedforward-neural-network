@@ -12,9 +12,6 @@ namespace ai_assignment
             )
         : m_InputArchitecture(inputArchitecture)
     {
-        // Mutex
-        auto scopeLock = std::lock_guard(this->m_Lock);
-        
         // Initalise the heuristics to the correct size (the number of layers of ANN + the input layer)
         this->m_ConnectionHeuristic = vector<vector<double*>>(inputArchitecture.size() + 1);
 
@@ -53,11 +50,23 @@ namespace ai_assignment
             for (size_t j = 0; j < inputs; j++)
             {
                 // Create the heuristic for either this neuron or the input
-                if (netArchitecture[i])
-                this->m_ConnectionHeuristic.at(i + 1).at(j);
 
-                // If there isn't a neuron here, continue
-                if (netArchitecture[i] >= j) continue;
+                // If this is a neuron or if it's an input, create a new value on the heap
+                // (neuron || input) == (nCount + iCount) > j
+                if ( !( netArchitecture[i] + inputArchitecture[i] > j ) )
+                {
+                    this->m_ConnectionHeuristic.at(i + 1).at(j) = new double();
+                }
+                // If it's not an input or a neuron, reference the last value of the previous layer (a.k.a. threshold/bias)
+                else
+                {
+                    // This will never fail, since zero is always assigned and we start from 1
+                    this->m_ConnectionHeuristic.at(i + 1).at(j)
+                        = this->m_ConnectionHeuristic.at(i).at(inputs);
+                }
+
+                // If there isn't a neuron here, skip to the next value
+                if (!(netArchitecture[i] < j)) continue;
                 
                 // Create the neuron with predefined values
                 if (startingWeights != nullptr)

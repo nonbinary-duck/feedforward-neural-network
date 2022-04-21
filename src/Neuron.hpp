@@ -55,7 +55,10 @@ namespace ai_assignment
              * 
              * @param obj object to copy
              */
-            inline Neuron(const Neuron &obj) noexcept : InputCount(obj.InputCount), m_Weights(obj.m_Weights), m_ActivationFunction(obj.m_ActivationFunction)
+            inline Neuron(const Neuron &obj) noexcept
+                : InputCount(obj.InputCount),
+                    m_ActivationFunction(obj.m_ActivationFunction),
+                    m_Weights(new auto(*obj.m_Weights))
             {}
 
             /**

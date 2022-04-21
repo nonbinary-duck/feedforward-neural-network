@@ -16,7 +16,7 @@ namespace ai_assignment
     using std::vector;
     
     /**
-     * @brief A network of artifical neurons, thread safe
+     * @brief A network of artifical neurons, thread safe. Bias/threshold is final value of input
      */
     class NeuralNet
     {
@@ -32,7 +32,7 @@ namespace ai_assignment
              * @param inputArchitecture The number of inputs in each layer of the net. Must include bias/threshold input.
              * @param inputs The number of inputs accepted from each neuron, including the bias/threshold 'fake input'. If a layer of the architecture doesn't have enough inputs from the previous layer, it takes the last value of the layer before that. i.e. the very last input can be used as a 'fallback' bias/threshold
              * @param activationFunctions The activation function to use for each individual layer
-             * @param startingWeights The weights to apply to each neuron. Must contain every single weight. A weight (l) set of weights (k*) is part of a neuron (j) which is part of a layer (i). Auto-generates weights if nullptr. WARNING: This needs to be on the heap. It's disposed immediately after the neurons have been created. The neuron has ownership of the nested heap value, which is released when the neuron gets deleted when the NeuralNet gets disposed of
+             * @param startingWeights The weights to apply to each neuron. Must contain every single weight. A weight (l) set of weights (k*) is part of a neuron (j) which is part of a layer (i). Auto-generates weights if nullptr. WARNING: This needs to be on the heap. It's disposed immediately after the neurons have been created. The neuron has ownership of the nested heap value, which is released when the neuron gets deleted when the NeuralNet gets freed
              */
             NeuralNet(
                 vector<size_t> netArchitecture,
@@ -43,7 +43,7 @@ namespace ai_assignment
             );
 
             /**
-             * @brief Temporary shallow copy ctor, not valid
+             * @brief The copy constructor
              * 
              * @note We don't copy the mutex since it needs to be reset
              * 
@@ -53,7 +53,21 @@ namespace ai_assignment
                 : m_Architecture(obj.m_Architecture),
                     m_ConnectionHeuristic(obj.m_ConnectionHeuristic),
                     m_InputArchitecture(obj.m_InputArchitecture)
-            {}
+            {
+                // Create new values on the heap
+                
+                // Create a new value on the heap for each neuron
+                for (size_t i = 0; i < this->m_Architecture.size(); i++)
+                {
+                    for (size_t j = 0; j < this->m_Architecture.at(i).size(); j++)
+                    {
+                        this->m_Architecture.at(i).at(j) = new auto(*this->m_Architecture.at(i).at(j));
+                    }
+                }
+
+                // Initialise the heuristic table
+
+            }
 
             /**
              * @brief Destroy the NeuralNet object
@@ -87,7 +101,7 @@ namespace ai_assignment
             vector<vector<Neuron*>> m_Architecture;
 
             /**
-             * @brief A list of layers of values to connect the neurons. The first layer is the input layer. In each layer, the last part is dedicated to inputs, or fallback inputs
+             * @brief A list of layers of values to connect the neurons. The first layer is the input layer. In each layer, the last part is dedicated to inputs and/or fallback inputs
              */
             vector<vector<double*>> m_ConnectionHeuristic;
 
@@ -95,8 +109,25 @@ namespace ai_assignment
              * @brief The number of inputs given for each layer, includes bias/threshold
              */
             const vector<size_t> m_InputArchitecture;
+
+
+            // Functions
+
+
+            /**
+             * @brief Initialises the heuristic table
+             */
+            void InitialiseConnectionHeuristics() noexcept;
+
+            /**
+             * @brief Initialise the neurons
+             */
+            void InitialiseNeurons();
         
         private:
+
+            // Properties
+
 
             /**
              * @brief A mutex to guard m_ConnectionHeuristic and m_Architecture
