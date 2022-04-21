@@ -32,7 +32,7 @@ namespace ai_assignment
              * @param inputArchitecture The number of inputs in each layer of the net. Must include bias/threshold input.
              * @param inputs The number of inputs accepted from each neuron, including the bias/threshold 'fake input'. If a layer of the architecture doesn't have enough inputs from the previous layer, it takes the first value of the layer before that. i.e. the very first input can be used as a 'fallback' bias/threshold
              * @param activationFunctions The activation function to use for each individual layer
-             * @param startingWeights The weights to apply to each neuron. A weight (l) set of weights (k*) is part of a neuron (j) which is part of a layer (i). Auto-generates weights if nullptr. WARNING: This needs to be on the heap. It's disposed immediately after the neurons have been created
+             * @param startingWeights The weights to apply to each neuron. Must contain every single weight. A weight (l) set of weights (k*) is part of a neuron (j) which is part of a layer (i). Auto-generates weights if nullptr. WARNING: This needs to be on the heap. It's disposed immediately after the neurons have been created. The neuron has ownership of the nested heap value, which is released when the neuron gets deleted when the NeuronNet gets disposed of
              */
             NeuronNet(
                 vector<size_t> netArchitecture,
@@ -91,7 +91,7 @@ namespace ai_assignment
             vector<vector<Neuron*>> m_Architecture;
 
             /**
-             * @brief A list of layers of values to connect the neurons. Size of inputCount + 1 repeated n times where n > 2
+             * @brief A list of layers of values to connect the neurons
              */
             vector<vector<double>*> m_ConnectionHeuristic;
 
