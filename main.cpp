@@ -3,8 +3,9 @@
 #include <iostream>
 #include <functional>
 
-using std::cout, std::endl;
+using std::cout, std::endl, std::vector;
 
+#include "src/utils.hpp"
 #include "src/Neuron.hpp"
 #include "src/activation_functions.hpp"
 
@@ -15,29 +16,46 @@ int main()
     // Initalise a 'random' seed for std::rand
     std::srand( std::time(nullptr) );
     
-    std::vector<double> weights { 0.5, -0.1, 0.2 };
-    std::vector<double> inputs  { 0.0, 1.0, 1.0  };
+    vector<double> weights { 0.0, 0.0, 1.0 };
+    vector<vector<double>> inputs
+    {
+        { 0.0, 0.0, 1.0  },
+        { 0.0, 1.0, 1.0  },
+        { 1.0, 0.0, 1.0  },
+        { 1.0, 1.0, 1.0  }
+    };
 
     Neuron n(2, weights, activation_functions::sigmoidFunc);
 
-    cout << n.ProcessInputs(inputs) << endl;
-
-    std::vector<TrainingExample> ex
+    vector<TrainingExample> ex
     {
-        TrainingExample({0.0, 1.0, 1.0}, 1.0)
+        TrainingExample({0.0, 0.0, 1.0}, 0.0),
+        TrainingExample({0.0, 1.0, 1.0}, 1.0),
+        TrainingExample({1.0, 0.0, 1.0}, 1.0),
+        TrainingExample({1.0, 1.0, 1.0}, 0.0)
     };
 
-    for (size_t i = 0; i < 100; i++)
+    long double previous;
+    long double current;
+    size_t it = 0;
+
+    for (size_t i = 0; i < 10000; i++)
     {
-        n.TrainNeuron(ex, 0.05);
+        current = n.TrainNeuron(ex, 0.05);
+        
+        if (it == 0 && previous == current) {it = i;}
+        
+        cout << "er: " << current << " Δ" << previous - current << ((it != 0)? " :: mse reached equilibrium at " + std::to_string(it) : "") << endl;
+
+        previous = current;
     }
 
-    for (size_t i = 0; i < n.m_Weights->size(); i++)
+    for (size_t i = 0; i < inputs.size(); i++)
     {
-        cout << i << ": " << n.m_Weights->at(i) << endl;
+        cout << "Input " << i << ": " << n.ProcessInputs(inputs[i]) << endl;
     }
 
-    cout << n.ProcessInputs(inputs) << endl << endl;
+    utils::printWeights(&n);
 
     return 0;
 }

@@ -73,6 +73,16 @@ namespace ai_assignment
              */
             const size_t InputCount;
 
+            // Accessors
+
+            /**
+             * @brief Gets a copy of the weights object
+             */
+            inline std::vector<double> *GetWeights() const noexcept
+            {
+                return new auto(*this->m_Weights);
+            }
+
             // Functions
 
             /**
@@ -84,15 +94,15 @@ namespace ai_assignment
             double ProcessInputs(std::vector<double> &inputs) const;
 
             /**
-             * @brief Stochastic gradient descent method of training a neuron. Stochastic meaning that we work on the live values
+             * @brief Stochastic gradient descent method of training a neuron
              * 
              * @param trainingValues The training values
              * @param learningRate The learning rate, or speed at which weights are modified
-             * @return double 
+             * @return long double The mean squared error rate
              */
-            double TrainNeuron(std::vector<TrainingExample> trainingExamples, double learningRate);
+            long double TrainNeuron(std::vector<TrainingExample> trainingExamples, double learningRate);
 
-        // protected:
+        protected:
 
             // Properties
 

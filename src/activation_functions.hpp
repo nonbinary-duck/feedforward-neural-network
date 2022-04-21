@@ -28,6 +28,11 @@ namespace ai_assignment::activation_functions
         return 1.0l / ( 1.0l + std::exp(-net) );
     }
 
+    inline double noFunc(const double &net)
+    {
+        return net;
+    }
+
 } // End namespace ai_assignment::activation_functions
 
 

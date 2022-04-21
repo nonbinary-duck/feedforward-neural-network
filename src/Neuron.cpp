@@ -62,8 +62,11 @@ namespace ai_assignment
         return this->m_ActivationFunction(output);
     }
 
-    double Neuron::TrainNeuron(std::vector<TrainingExample> trainingExamples, double learningRate)
+    long double Neuron::TrainNeuron(std::vector<TrainingExample> trainingExamples, double learningRate)
     {
+        // Setup a value to store the average error rate
+        long double mseErrorRate = 0.0;
+        
         // Loop over the training examples
         for (size_t i = 0; i < trainingExamples.size(); i++)
         {
@@ -71,18 +74,23 @@ namespace ai_assignment
             auto &ex = trainingExamples[i];
 
             // Fetch the result of the inputs
-            double output = this->ProcessInputs(ex.inputs);
+            // (t - o)
+            double error = ex.targetOutput - this->ProcessInputs(ex.inputs);
+            mseErrorRate += std::pow(error, 2.0l);
 
             // Compute "for each linear unit weight wᵢ..."
             for (size_t j = 0; j < this->InputCount + 1; j++)
             {
                 // Stochastic gradient descent
+                // 
                 // wₙ += η(t - o) · xₙ
-                this->m_Weights->at(j) += learningRate * (ex.targetOutput - output) * ex.inputs[j];
+                // (t - o) == error
+                // 
+                this->m_Weights->at(j) += learningRate * error * ex.inputs[j];
             }
         }
-        
-        return 1;
+
+        return mseErrorRate / trainingExamples.size();
     }
 
 
