@@ -29,15 +29,13 @@ namespace ai_assignment
              * @brief Construct a new Neuron Net according to some patterns. Does not properly verify the net structure and will produce undefined behaviour if it's invalid
              * 
              * @param netArchitecture The layout of the neurons. Each element represents the number of neurons in that layer
-             * @param inputArchitecture The number of inputs in each layer of the net. Must include bias/threshold input.
-             * @param inputs The number of inputs accepted from each neuron, including the bias/threshold 'fake input'. If a layer of the architecture doesn't have enough inputs from the previous layer, it takes the last value of the layer before that. i.e. the very last input can be used as a 'fallback' bias/threshold
+             * @param inputArchitecture The number of inputs in each layer of the net. Must include bias/threshold input. Each number is the count of inputs in that layer, including the bias/threshold 'fake input'. If a layer of the architecture doesn't have enough inputs from the previous layer, it takes the last value of the layer before that. i.e. the very last input can be used as a 'fallback' bias/threshold
              * @param activationFunctions The activation function to use for each individual layer
              * @param startingWeights The weights to apply to each neuron. Must contain every single weight. A weight (l) set of weights (k*) is part of a neuron (j) which is part of a layer (i). Auto-generates weights if nullptr. WARNING: This needs to be on the heap. It's disposed immediately after the neurons have been created. The neuron has ownership of the nested heap value, which is released when the neuron gets deleted when the NeuralNet gets freed
              */
             NeuralNet(
-                vector<size_t> netArchitecture,
+                const vector<size_t> netArchitecture,
                 const vector<size_t> inputArchitecture,
-                const size_t inputs,
                 const vector< activation_func_type > activationFunctions,
                 vector< vector < vector< double >* > > *startingWeights = nullptr
             );
@@ -45,29 +43,11 @@ namespace ai_assignment
             /**
              * @brief The copy constructor
              * 
-             * @note We don't copy the mutex since it needs to be reset
+             * @note We don't copy the mutex since it needs to be reset, nor do we copy the heuristics since it needs to be completely re-created
              * 
              * @param obj object to copy
              */
-            inline NeuralNet(const NeuralNet &obj) noexcept
-                : m_Architecture(obj.m_Architecture),
-                    m_ConnectionHeuristic(obj.m_ConnectionHeuristic),
-                    m_InputArchitecture(obj.m_InputArchitecture)
-            {
-                // Create new values on the heap
-                
-                // Create a new value on the heap for each neuron
-                for (size_t i = 0; i < this->m_Architecture.size(); i++)
-                {
-                    for (size_t j = 0; j < this->m_Architecture.at(i).size(); j++)
-                    {
-                        this->m_Architecture.at(i).at(j) = new auto(*this->m_Architecture.at(i).at(j));
-                    }
-                }
-
-                // Initialise the heuristic table
-
-            }
+            NeuralNet(const NeuralNet &obj) noexcept;
 
             /**
              * @brief Destroy the NeuralNet object
@@ -110,6 +90,16 @@ namespace ai_assignment
              */
             const vector<size_t> m_InputArchitecture;
 
+            /**
+             * @brief The architecture of the net, cached to speed up copy ctor
+             */
+            const vector<size_t> m_NetArchitecture;
+
+            /**
+             * @brief A mutex to guard m_ConnectionHeuristic and m_Architecture
+             */
+            mutable std::mutex m_Lock;
+
 
             // Functions
 
@@ -117,22 +107,20 @@ namespace ai_assignment
             /**
              * @brief Initialises the heuristic table
              */
-            void InitialiseConnectionHeuristics() noexcept;
+            void InitialiseConnectionHeuristics(
+                const vector<size_t> &netArchitecture,
+                const vector<size_t> &inputArchitecture
+            ) noexcept;
 
             /**
              * @brief Initialise the neurons
              */
-            void InitialiseNeurons();
-        
-        private:
-
-            // Properties
-
-
-            /**
-             * @brief A mutex to guard m_ConnectionHeuristic and m_Architecture
-             */
-            mutable std::mutex m_Lock;
+            void InitialiseNeurons(
+                const vector<size_t> &netArchitecture,
+                const vector<size_t> &inputArchitecture,
+                const vector< activation_func_type > &activationFunctions,
+                vector< vector < vector< double >* > > *startingWeights = nullptr
+            );
     };
     
 } // End namespace ai_assignment

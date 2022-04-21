@@ -3,15 +3,55 @@
 
 namespace ai_assignment
 {
+    // Public Constructors
+    
     NeuralNet::NeuralNet(
-                vector<size_t> netArchitecture,
+                const vector<size_t> netArchitecture,
                 const vector<size_t> inputArchitecture,
-                const size_t inputs,
                 const vector< activation_func_type > activationFunctions,
                 vector< vector < vector< double >* > > *startingWeights
             )
-        : m_InputArchitecture(inputArchitecture)
+        : m_InputArchitecture(inputArchitecture),
+            m_NetArchitecture(m_NetArchitecture)
     {
+        this->InitialiseConnectionHeuristics(netArchitecture, inputArchitecture);
+
+        // Dispose of the starting weights collection, we don't need the collection any more
+        delete startingWeights;
+    }
+
+    NeuralNet::NeuralNet(const NeuralNet &obj) noexcept
+        : m_Architecture(obj.m_Architecture),
+            m_InputArchitecture(obj.m_InputArchitecture),
+            m_NetArchitecture(obj.m_NetArchitecture)
+    {
+        // Create new values on the heap
+        
+        // Create a new value on the heap for each neuron
+        for (size_t i = 0; i < this->m_Architecture.size(); i++)
+        {
+            for (size_t j = 0; j < this->m_Architecture.at(i).size(); j++)
+            {
+                this->m_Architecture.at(i).at(j) = new auto(*this->m_Architecture.at(i).at(j));
+            }
+        }
+
+        // Re-create the connection heuristics
+        this->InitialiseConnectionHeuristics(obj.m_NetArchitecture, obj.m_InputArchitecture);
+    }
+
+
+    // Protected Functions
+
+
+    void NeuralNet::InitialiseConnectionHeuristics(
+        const vector<size_t> &netArchitecture,
+        const vector<size_t> &inputArchitecture
+    ) noexcept
+    {
+        // Figure out how many inputs every neuron has
+        const size_t inputs = inputArchitecture[0];
+        
         // Initalise the heuristics to the correct size (the number of layers of ANN + the input layer)
         this->m_ConnectionHeuristic = vector<vector<double*>>(inputArchitecture.size() + 1);
 
@@ -25,16 +65,9 @@ namespace ai_assignment
             this->m_ConnectionHeuristic.at(0).at(i) = new double(0.0);
         }
         
-
-        // Initalise the architecture to the correct size
-        this->m_Architecture = std::vector<std::vector<Neuron*>>(netArchitecture.size());
-        
         // Create the neurons for each layer
         for (size_t i = 0; i < netArchitecture.size(); i++)
         {
-            // Initalise this layer of the architecture
-            this->m_Architecture.at(i) = std::vector<Neuron*>(netArchitecture[i]);
-
             // Initalise this layer of the heuristics
             // Connection heuristics are offset by -1 because of the input layer
             this->m_ConnectionHeuristic.at(i + 1) = vector<double*>(
@@ -45,12 +78,9 @@ namespace ai_assignment
                     netArchitecture[i]
             );
 
-            // Setup the neurons in this layer
-            // There cannot be more than inputs than values in this ANN, since each neuron has exactly the same number of inputs. This is something which could be easily changed in the futire.
+            // Loop over the inputs needed for the next layer
             for (size_t j = 0; j < inputs; j++)
             {
-                // Create the heuristic for either this neuron or the input
-
                 // If this is a neuron or if it's an input, create a new value on the heap
                 // (neuron || input) == (nCount + iCount) > j
                 if ( !( netArchitecture[i] + inputArchitecture[i] > j ) )
@@ -64,10 +94,33 @@ namespace ai_assignment
                     this->m_ConnectionHeuristic.at(i + 1).at(j)
                         = this->m_ConnectionHeuristic.at(i).at(inputs);
                 }
+            }
+        }
+    }
 
-                // If there isn't a neuron here, skip to the next value
-                if (!(netArchitecture[i] < j)) continue;
-                
+    void NeuralNet::InitialiseNeurons(
+        const vector<size_t> &netArchitecture,
+        const vector<size_t> &inputArchitecture,
+        const vector< activation_func_type > &activationFunctions,
+        vector< vector < vector< double >* > > *startingWeights = nullptr
+    )
+    {
+        // Figure out how many inputs every neuron has
+        const size_t inputs = inputArchitecture[0];
+        
+        // Initalise the architecture to the correct size
+        this->m_Architecture = std::vector<std::vector<Neuron*>>(netArchitecture.size());
+        
+        // Create the neurons for each layer
+        for (size_t i = 0; i < netArchitecture.size(); i++)
+        {
+            // Initalise this layer of the architecture
+            this->m_Architecture.at(i) = std::vector<Neuron*>(netArchitecture[i]);
+
+            // Setup the neurons in this layer
+            // There cannot be more than inputs than values in this ANN, since each neuron has exactly the same number of inputs. This is something which could be easily changed in the futire.
+            for (size_t j = 0; j < netArchitecture[i]; j++)
+            {
                 // Create the neuron with predefined values
                 if (startingWeights != nullptr)
                 {
@@ -85,9 +138,7 @@ namespace ai_assignment
                 else this->m_Architecture.at(i).at(j) = new Neuron(inputs, activationFunctions[i]);
             }
         }
-
-        // Dispose of the starting weights collection, we don't need the collection any more
-        delete startingWeights;
     }
+
     
 } // End namespace ai_assignment
