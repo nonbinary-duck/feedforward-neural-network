@@ -1,9 +1,9 @@
-#include "NeuronNet.hpp"
+#include "NeuralNet.hpp"
 
 
 namespace ai_assignment
 {
-    NeuronNet::NeuronNet(
+    NeuralNet::NeuralNet(
                 vector<size_t> netArchitecture,
                 const vector<size_t> inputArchitecture,
                 const size_t inputs,
@@ -15,6 +15,20 @@ namespace ai_assignment
         // Mutex
         auto scopeLock = std::lock_guard(this->m_Lock);
         
+        // Initalise the heuristics to the correct size (the number of layers of ANN + the input layer)
+        this->m_ConnectionHeuristic = vector<vector<double*>>(inputArchitecture.size() + 1);
+
+        // Create the first layer of the heuristics...
+
+        this->m_ConnectionHeuristic.at(0) = vector<double*>(inputs);        
+
+        // ...and assign some values on the heap for it
+        for (size_t i = 0; i < inputs; i++)
+        {
+            this->m_ConnectionHeuristic.at(0).at(i) = new double(0.0);
+        }
+        
+
         // Initalise the architecture to the correct size
         this->m_Architecture = std::vector<std::vector<Neuron*>>(netArchitecture.size());
         
@@ -24,14 +38,34 @@ namespace ai_assignment
             // Initalise this layer of the architecture
             this->m_Architecture.at(i) = std::vector<Neuron*>(netArchitecture[i]);
 
+            // Initalise this layer of the heuristics
+            // Connection heuristics are offset by -1 because of the input layer
+            this->m_ConnectionHeuristic.at(i + 1) = vector<double*>(
+                // The heuristic will either have as many values as there are inputs for the next layer, or it will have the sum of the neural networks (only if it's on the last layer)
+                (i != netArchitecture.size() - 1)?
+                    inputs
+                    :
+                    netArchitecture[i]
+            );
+
             // Setup the neurons in this layer
-            for (size_t j = 0; j < netArchitecture[i]; j++)
+            // There cannot be more than inputs than values in this ANN, since each neuron has exactly the same number of inputs. This is something which could be easily changed in the futire.
+            for (size_t j = 0; j < inputs; j++)
             {
+                // Create the heuristic for either this neuron or the input
+                if (netArchitecture[i])
+                this->m_ConnectionHeuristic.at(i + 1).at(j);
+
+                // If there isn't a neuron here, continue
+                if (netArchitecture[i] >= j) continue;
+                
                 // Create the neuron with predefined values
                 if (startingWeights != nullptr)
                 {
+                    // Gives a descript error of what went wrong
                     if (startingWeights->at(i).at(j) == nullptr) throw std::invalid_argument("All elements of the starting weights must be provided");
                     
+                    // Crete a new neuron using the provided weights
                     this->m_Architecture.at(i).at(j) = new Neuron(
                         inputs,
                         startingWeights->at(i).at(j),
@@ -40,9 +74,6 @@ namespace ai_assignment
                 }
                 // Use randomly generated starting values
                 else this->m_Architecture.at(i).at(j) = new Neuron(inputs, activationFunctions[i]);
-
-                // Create the heuristic for that neuron
-                
             }
         }
 
