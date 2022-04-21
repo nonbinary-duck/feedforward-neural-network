@@ -41,6 +41,51 @@ namespace ai_assignment
     }
 
 
+    // Public Functions
+
+    
+    vector<double> NeuralNet::ProcessInputs(vector<vector<double>> &inputLayers) const noexcept
+    {
+        // Lock the mutex and release on destruction (return)
+        auto scopedLock = std::scoped_lock(this->m_Lock);
+        
+        // Check the input is valid
+        if (inputLayers.size() != this->m_InputArchitecture.size()) throw std::invalid_argument("Input provided doesn't match architecture");
+
+        
+        // Setup the inputs
+        for (size_t i = 0; i < inputLayers.size(); i++)
+        {
+            // Get the index where we should start writing our values
+            size_t startPoint = (i == 0)? 0 : this->m_NetArchitecture.at(i - 1);
+            size_t size = inputLayers.at(i).size();
+
+            // Check the input is valid
+            if (size != this->m_InputArchitecture.at(i)) throw std::invalid_argument("Input provided doesn't match architecture, see i=" + i);
+
+            // Copy the values over
+            for (size_t j = 0; j < size; j++)
+            {
+                *this->m_ConnectionHeuristic.at(i).at(j + startPoint)
+                    = inputLayers.at(i).at(j);
+            }
+        }
+        
+        // Execute the neurons layer-by-layer
+        for (size_t i = 0; i < this->m_NetArchitecture.size(); i++)
+        {
+            for (size_t j = 0; j < this->m_NetArchitecture.at(i); j++)
+            {
+                this->m_Architecture.at(i).at(j)->ProcessInputs(
+                    this->m_ConnectionHeuristic.at(i)
+                );
+            }
+        }
+        
+    }
+
+
+
     // Protected Functions
 
 

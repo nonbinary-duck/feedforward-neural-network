@@ -91,19 +91,19 @@ namespace ai_assignment
             /**
              * @brief Proces the inputs into an output
              * 
-             * @param inputs The inputs to modify, including, as the last value, the bias/threshold
+             * @param inputs The inputs to modify, including the bias/threshold
              * @return The output of the neuron
              */
-            double ProcessInputs(std::vector<double> &inputs) const;
+            double ProcessInputs(std::vector<double*> &inputs) const;
 
             /**
              * @brief Stochastic gradient descent method of training a neuron
              * 
              * @param trainingValues The training values
              * @param learningRate The learning rate, or speed at which weights are modified
-             * @return long double The mean squared error rate
+             * @return double The mean squared error rate
              */
-            long double TrainNeuron(std::vector<TrainingExample> trainingExamples, double learningRate);
+            double TrainNeuron(std::vector<TrainingExample> trainingExamples, double learningRate);
 
         protected:
 

@@ -10,24 +10,10 @@ namespace ai_assignment
         Neuron(inputCount, this->GenerateRandomWeights(inputCount), activationFunction)
     {}
 
-    /**
-     * @brief Construct a new 'Neuron' and copy the weights into the heap
-     * 
-     * @param inputCount The number of inputs to the neuron, excluding the bias/threshold
-     * @param weights The starting weights for the 'Neuron'; gets coppied onto the heap and must have an extra 'one' for the bias/threshold
-     * @param activationFunction The activation function to apply to the output
-     */
     Neuron::Neuron(size_t inputCount, std::vector<double> &weights, const activation_func_type activationFunction) :
         Neuron(inputCount, new auto(weights), activationFunction)
     {}
 
-    /**
-     * @brief Construct a new 'Neuron'
-     * 
-     * @param inputCount The number of inputs to the neuron, excluding the bias/threshold
-     * @param weights The starting weights for the 'Neuron'; must have an extra 'one' for the bias/threshold
-     * @param activationFunction The activation function to apply to the output
-     */
     Neuron::Neuron(size_t inputCount, std::vector<double> *weights, const activation_func_type activationFunction) :
         InputCount(inputCount),
         m_ActivationFunction(activationFunction),
@@ -42,13 +28,7 @@ namespace ai_assignment
     // Public Functions
 
 
-    /**
-        * @brief Proces the inputs into an output
-        * 
-        * @param inputs The inputs to modify, including, as the last value, the bias/threshold
-        * @return The output of the neuron
-        */
-    double Neuron::ProcessInputs(std::vector<double> &inputs) const
+    double Neuron::ProcessInputs(std::vector<double*> &inputs) const
     {
         if (inputs.size() != this->InputCount + 1) throw std::invalid_argument("Inputs has incorrect size");
 
@@ -56,16 +36,16 @@ namespace ai_assignment
 
         for (size_t i = 0; i < inputs.size(); i++)
         {
-            output += inputs[i] * this->m_Weights->at(i);
+            output += (*inputs[i]) * this->m_Weights->at(i);
         }
 
         return this->m_ActivationFunction(output);
     }
 
-    long double Neuron::TrainNeuron(std::vector<TrainingExample> trainingExamples, double learningRate)
+    double Neuron::TrainNeuron(std::vector<TrainingExample> trainingExamples, double learningRate)
     {
         // Setup a value to store the average error rate
-        long double mseErrorRate = 0.0;
+        double mseErrorRate = 0.0;
         
         // Loop over the training examples
         for (size_t i = 0; i < trainingExamples.size(); i++)
@@ -75,7 +55,7 @@ namespace ai_assignment
 
             // Fetch the result of the inputs
             // (t - o)
-            double error = ex.targetOutput - this->ProcessInputs(ex.inputs);
+            double error = 0;// ex.targetOutput - this->ProcessInputs(ex.inputs);
             mseErrorRate += std::pow(error, 2.0l);
 
             // Compute "for each linear unit weight wᵢ..."

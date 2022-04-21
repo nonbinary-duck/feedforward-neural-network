@@ -68,7 +68,7 @@ namespace ai_assignment
              * @param inputLayers Input values. Must be a vector of non-zero size containing vectors of exactly inputCount + 1 size
              * @return double The results from the final layer of the network
              */
-            vector<double> ProcessInputs(vector<vector<double>*> &inputLayers);
+            vector<double> ProcessInputs(vector<vector<double>> &inputLayers) const noexcept;
 
         protected:
 
