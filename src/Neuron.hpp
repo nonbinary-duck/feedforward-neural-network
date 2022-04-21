@@ -15,7 +15,7 @@ namespace ai_assignment
     typedef std::function<double(const double&)> activation_func_type;
     
     /**
-     * @brief An artificial 'neuron'
+     * @brief An artificial 'neuron', not thread safe
      */
     class Neuron
     {
@@ -61,7 +61,7 @@ namespace ai_assignment
             /**
              * @brief Destroy the Neuron object (we only own our weights on the heap)
              */
-            inline ~Neuron() noexcept
+            inline virtual ~Neuron() noexcept
             {
                 delete this->m_Weights;
             }
