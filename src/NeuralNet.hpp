@@ -5,6 +5,7 @@
 #include <mutex>
 #include <vector>
 
+#include "TrainingExample.hpp"
 #include "Neuron.hpp"
 #include "utils.hpp"
 
@@ -28,13 +29,13 @@ namespace ai_assignment
              * @brief Construct a new Neuron Net according to some patterns. Does not properly verify the net structure and will produce undefined behaviour if it's invalid
              * 
              * @param netArchitecture The layout of the neurons. Each element represents the number of neurons in that layer
-             * @param inputArchitecture The number of inputs in each layer of the net. Must include bias/threshold input. Each number is the count of inputs in that layer, including the bias/threshold 'fake input'. If a layer of the architecture doesn't have enough inputs from the previous layer, it takes the last value of the layer before that. i.e. the very last input can be used as a 'fallback' bias/threshold
+             * @param inputArchitecture The number of inputs each neuron takes. Must include bias/threshold. Values will carry-over until a neuron overwrites them (i.e. the last value can be used as a bias/threshold)
              * @param activationFunctions The activation function to use for each individual layer
              * @param startingWeights The weights to apply to each neuron. Must contain every single weight. A weight (l) set of weights (k*) is part of a neuron (j) which is part of a layer (i). Auto-generates weights if nullptr. WARNING: This needs to be on the heap. It's disposed immediately after the neurons have been created. The neuron has ownership of the nested heap value, which is released when the neuron gets deleted when the NeuralNet gets freed
              */
             NeuralNet(
                 const vector<size_t> netArchitecture,
-                const vector<size_t> inputArchitecture,
+                const size_t inputs,
                 const vector< activation_func_type > activationFunctions,
                 vector< vector < vector< double >* > > *startingWeights = nullptr
             );
@@ -53,7 +54,6 @@ namespace ai_assignment
              */
             inline virtual ~NeuralNet() noexcept
             {
-                utils::releaseVecValues<double>(this->m_ConnectionHeuristic);
                 utils::releaseVecValues<Neuron>(this->m_Architecture);
             }
 
@@ -64,10 +64,13 @@ namespace ai_assignment
             /**
              * @brief Runs through the net and returns the results
              * 
-             * @param inputLayers Input values. Must be a vector of non-zero size containing vectors of exactly inputCount + 1 size
+             * @param inputs The inputs to the net. The last value of the inputs is the bias/threshold which is in all layers until overwritten by a neuron
+             * @param recordedOutputs If provided, records each individual output. This excludes the final output, and should therefore have a size of layers * inputs
              * @return double The results from the final layer of the network
              */
-            vector<double> *ProcessInputs(vector<vector<double>> &inputLayers);
+            vector<double> *ProcessInputs(vector<double> inputs, vector<vector<double>> *recordedOutputs = nullptr);
+
+            double TrainNetwork(vector<TrainingExample> &trainingExamples);
 
         protected:
 
@@ -80,14 +83,9 @@ namespace ai_assignment
             vector<vector<Neuron*>> m_Architecture;
 
             /**
-             * @brief A list of layers of values to connect the neurons. The first layer is the input layer. In each layer, the last part is dedicated to inputs and/or fallback inputs
+             * @brief The number of inputs each neuron takes
              */
-            vector<vector<double*>> m_ConnectionHeuristic;
-
-            /**
-             * @brief The number of inputs given for each layer, includes bias/threshold
-             */
-            const vector<size_t> m_InputArchitecture;
+            const size_t m_Inputs;
 
             /**
              * @brief The architecture of the net, cached to speed up copy ctor
@@ -102,21 +100,12 @@ namespace ai_assignment
 
             // Functions
 
-
-            /**
-             * @brief Initialises the heuristic table
-             */
-            void InitialiseConnectionHeuristics(
-                const vector<size_t> &netArchitecture,
-                const vector<size_t> &inputArchitecture
-            ) noexcept;
-
             /**
              * @brief Initialise the neurons
              */
             void InitialiseNeurons(
                 const vector<size_t> &netArchitecture,
-                const vector<size_t> &inputArchitecture,
+                const size_t inputs,
                 const vector< activation_func_type > &activationFunctions,
                 vector< vector < vector< double >* > > *startingWeights = nullptr
             );

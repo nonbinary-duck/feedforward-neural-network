@@ -1,5 +1,4 @@
 #include "Neuron.hpp"
-#include <concepts>
 
 namespace ai_assignment
 {
@@ -26,23 +25,6 @@ namespace ai_assignment
 
 
     // Public Functions
-
-
-    double Neuron::ProcessInputs(std::vector<double*> &inputs) const
-    {
-        if (inputs.size() != this->InputCount + 1) throw std::invalid_argument("Inputs has incorrect size");
-
-        double output;
-
-        for (size_t i = 0; i < inputs.size(); i++)
-        {
-            output += (*inputs[i]) * this->m_Weights->at(i);
-        }
-
-        return this->m_ActivationFunction(output);
-    }
-
-    // Copy-pasted from above, see note in headder file
 
     double Neuron::ProcessInputs(std::vector<double> &inputs) const
     {

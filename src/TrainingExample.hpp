@@ -14,7 +14,7 @@ namespace ai_assignment
     {
         std::vector<double> inputs;
         double targetOutput;
-    };    
+    };
 
 } // End namespace ai_assignment
 
