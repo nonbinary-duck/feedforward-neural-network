@@ -97,6 +97,16 @@ namespace ai_assignment
             double ProcessInputs(std::vector<double*> &inputs) const;
 
             /**
+             * @brief Proces the inputs into an output
+             * 
+             * @note Temporary solution to using and not using a pointer for the same function. Something fancy could be done with concept templates, though I think copy-pasting here isn't a bad alternative
+             * 
+             * @param inputs The inputs to modify, including the bias/threshold
+             * @return The output of the neuron
+             */
+            double ProcessInputs(std::vector<double> &inputs) const;
+
+            /**
              * @brief Stochastic gradient descent method of training a neuron
              * 
              * @param trainingValues The training values

@@ -12,8 +12,10 @@ namespace ai_assignment
                 vector< vector < vector< double >* > > *startingWeights
             )
         : m_InputArchitecture(inputArchitecture),
-            m_NetArchitecture(m_NetArchitecture)
+            m_NetArchitecture(netArchitecture)
     {
+        this->InitialiseNeurons(netArchitecture, inputArchitecture, activationFunctions, startingWeights);
+
         this->InitialiseConnectionHeuristics(netArchitecture, inputArchitecture);
 
         // Dispose of the starting weights collection, we don't need the collection any more
@@ -44,7 +46,7 @@ namespace ai_assignment
     // Public Functions
 
     
-    vector<double> NeuralNet::ProcessInputs(vector<vector<double>> &inputLayers) const noexcept
+    vector<double> *NeuralNet::ProcessInputs(vector<vector<double>> &inputLayers)
     {
         // Lock the mutex and release on destruction (return)
         auto scopedLock = std::scoped_lock(this->m_Lock);
@@ -72,16 +74,37 @@ namespace ai_assignment
         }
         
         // Execute the neurons layer-by-layer
-        for (size_t i = 0; i < this->m_NetArchitecture.size(); i++)
+        size_t layerCount = this->m_NetArchitecture.size();
+        vector<double> *outputs = new vector<double>(
+            this->m_NetArchitecture.at(layerCount - 1) - 1
+        );
+
+        for (size_t i = 0; i < layerCount; i++)
         {
             for (size_t j = 0; j < this->m_NetArchitecture.at(i); j++)
             {
-                this->m_Architecture.at(i).at(j)->ProcessInputs(
-                    this->m_ConnectionHeuristic.at(i)
-                );
+                // Use the output of the previous layer to input into each neuron on this layer
+
+                // If this isn't the last layer, fill in data
+                if (i + 1 < layerCount)
+                {
+                    (*this->m_ConnectionHeuristic.at(i + 1).at(j)) =
+                    (
+                        this->m_Architecture.at(i).at(j)->ProcessInputs(
+                            this->m_ConnectionHeuristic.at(i)
+                        )
+                    );
+                }
+                // Otherwise, fill in the outputs
+                else
+                {
+                    
+                }
+                
             }
         }
-        
+
+        return outputs;
     }
 
 
@@ -147,7 +170,7 @@ namespace ai_assignment
         const vector<size_t> &netArchitecture,
         const vector<size_t> &inputArchitecture,
         const vector< activation_func_type > &activationFunctions,
-        vector< vector < vector< double >* > > *startingWeights = nullptr
+        vector< vector < vector< double >* > > *startingWeights
     )
     {
         // Figure out how many inputs every neuron has
