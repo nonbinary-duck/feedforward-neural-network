@@ -20,6 +20,8 @@ namespace ai_assignment
      */
     class NeuralNet
     {
+        typedef TrainingExample<std::vector<double>> Example;
+        
         public:
 
             // Constructors
@@ -70,7 +72,24 @@ namespace ai_assignment
              */
             vector<double> *ProcessInputs(vector<double> inputs, vector<vector<double>> *recordedOutputs = nullptr);
 
-            double TrainNetwork(vector<TrainingExample> &trainingExamples);
+            /**
+             * @brief Trains the neural network for one epoch, then returns the MSE. Thread safe
+             * 
+             * @param trainingExamples Examples to give the net for it to "learn"
+             * @param learningRate The learning rate
+             * @return double The mean squared error (MSE) over the training examples (error of the net: netTarget - netOutput)
+             */
+            double TrainNetwork(vector<Example> &trainingExamples, double learningRate);
+
+            /**
+             * @brief Trains the neural network for one epoch, then returns the error rate. Not thread safe
+             * 
+             * @param trainingExample The example to give the net for it to "learn"
+             * @param learningRate The learning rate
+             * @param sharedOutputCache A shared variable to reduce overhead
+             * @return double The error of the net: netTarget - netOutput
+             */
+            double TrainNetwork(Example &trainingExample, double &learningRate, vector<vector<double>> *sharedOutputCache);
 
         protected:
 
@@ -78,7 +97,7 @@ namespace ai_assignment
 
 
             /**
-             * @brief The architecture of the net
+             * @brief The neurons
              */
             vector<vector<Neuron*>> m_Architecture;
 
@@ -88,7 +107,7 @@ namespace ai_assignment
             const size_t m_Inputs;
 
             /**
-             * @brief The architecture of the net, cached to speed up copy ctor
+             * @brief The architecture of the net
              */
             const vector<size_t> m_NetArchitecture;
 

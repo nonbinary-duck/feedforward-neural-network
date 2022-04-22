@@ -40,7 +40,7 @@ namespace ai_assignment
     // Public Functions
 
     
-    vector<double> *NeuralNet::ProcessInputs(vector<double> inputs, vector<vector<double>> *recordedOutputs = nullptr)
+    vector<double> *NeuralNet::ProcessInputs(vector<double> inputs, vector<vector<double>> *recordedOutputs)
     {
         // Lock the mutex and release on destruction (return)
         auto scopedLock = std::scoped_lock(this->m_Lock);
@@ -91,9 +91,46 @@ namespace ai_assignment
         return finalOutputs;
     }
 
-    double NeuralNet::TrainNetwork(vector<TrainingExample> &trainingExamples)
+    double NeuralNet::TrainNetwork(vector<Example> &trainingExamples, double learningRate)
     {
-        for
+        // Acquire lock
+        auto scopedLock = std::scoped_lock(this->m_Lock);
+        double mse = 0.0;
+
+        // Setup the storage for the results
+        auto *outputCache = new vector<vector<double>>(this->m_NetArchitecture.size());
+
+        for (size_t i = 0; i < outputCache->size(); i++)
+        {
+            outputCache->at(i) = vector<double>(this->m_Inputs);
+        }
+        
+        for (size_t i = 0; i < trainingExamples.size(); i++)
+        {
+            mse += std::pow(
+                this->TrainNetwork(trainingExamples[i], learningRate, outputCache),
+                2.0
+            );
+        }
+
+        return (mse / trainingExamples.size());
+    }
+
+    double NeuralNet::TrainNetwork(Example &trainingExample, double &learningRate, vector<vector<double>> *sharedOutputCache)
+    {
+        // Propagate the input forward through the network
+        auto out = this->ProcessInputs(trainingExample.inputs, sharedOutputCache);
+        auto errorTerms = vector<double>(out->size());
+
+        for (size_t k = 0; k < out->size(); k++)
+        {
+            // T4.3
+            errorTerms[k] = out->at(k) * (1.0 - out->at(k) * (trainingExample.targetOutput[k] - out->at(k)));
+        }
+
+        delete &out;
+
+        return -1;
     }
 
 

@@ -40,35 +40,46 @@ namespace ai_assignment
         return this->m_ActivationFunction(output);
     }
 
-    double Neuron::TrainNeuron(std::vector<TrainingExample> trainingExamples, double learningRate)
+    double Neuron::TrainNeuron(std::vector<Example> &trainingExamples, double learningRate)
     {
         // Setup a value to store the average error rate
         double mseErrorRate = 0.0;
         
-        // Loop over the training examples
+        // Loop over the training examples and adjust the mean squared error rate
         for (size_t i = 0; i < trainingExamples.size(); i++)
         {
-            // Makes it look neater
-            auto &ex = trainingExamples[i];
-
-            // Fetch the result of the inputs
-            // (t - o)
-            double error = 0;// ex.targetOutput - this->ProcessInputs(ex.inputs);
-            mseErrorRate += std::pow(error, 2.0l);
-
-            // Compute "for each linear unit weight wᵢ..."
-            for (size_t j = 0; j < this->InputCount + 1; j++)
-            {
-                // Stochastic gradient descent
-                // 
-                // wₙ += η(t - o) · xₙ
-                // (t - o) == error
-                // 
-                this->m_Weights->at(j) += learningRate * error * ex.inputs[j];
-            }
+            mseErrorRate += std::pow(
+                this->TrainNeuron(
+                    trainingExamples[i].inputs,
+                    (
+                        // Fetch the error term of the inputs
+                        // (t - o)
+                        trainingExamples[i].targetOutput -
+                        this->ProcessInputs(trainingExamples[i].inputs)
+                    ),
+                    learningRate
+                ),
+                2.0
+            );
         }
 
         return mseErrorRate / trainingExamples.size();
+    }
+
+    double Neuron::TrainNeuron(std::vector<double> &inputs, double error, double &learningRate)
+    {
+        // Compute "for each linear unit weight wᵢ..."
+        for (size_t j = 0; j < this->InputCount + 1; j++)
+        {
+            // Stochastic gradient descent
+            // 
+            // wₙ += η(t - o) · xₙ
+            // (t - o) == error
+            // 
+            this->m_Weights->at(j) += learningRate * error * inputs[j];
+        }
+
+        return error;
     }
 
 

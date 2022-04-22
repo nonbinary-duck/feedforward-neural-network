@@ -10,10 +10,11 @@ namespace ai_assignment
     /**
      * @brief A data type to hold information on a training example
      */
+    template<typename T>
     struct TrainingExample
     {
         std::vector<double> inputs;
-        double targetOutput;
+        T targetOutput;
     };
 
 } // End namespace ai_assignment

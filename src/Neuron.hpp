@@ -13,12 +13,14 @@
 namespace ai_assignment
 {
     typedef std::function<double(const double&)> activation_func_type;
-    
+
     /**
      * @brief An artificial 'neuron', not thread safe
      */
     class Neuron
     {
+        typedef TrainingExample<double> Example;
+        
         public:
 
             // Constructors
@@ -103,7 +105,17 @@ namespace ai_assignment
              * @param learningRate The learning rate, or speed at which weights are modified
              * @return double The mean squared error rate
              */
-            double TrainNeuron(std::vector<TrainingExample> trainingExamples, double learningRate);
+            double TrainNeuron(std::vector<Example> &trainingValues, double learningRate);
+
+            /**
+             * @brief Stochastic gradient descent method of training a neuron with just one example
+             * 
+             * @param inputs The inputs for this example
+             * @param error The error rate from running this example
+             * @param learningRate The learning rate, or speed at which weights are modified
+             * @return double The flat error rate (target - output)
+             */
+            double TrainNeuron(std::vector<double> &inputs, double error, double &learningRate);
 
         protected:
 
