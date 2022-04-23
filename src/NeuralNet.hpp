@@ -1,12 +1,14 @@
 #pragma once
-#ifndef H_530093_SRC_NET
-#define H_530093_SRC_NET 1
+#ifndef H_530093_SRC_NEURAL_NET
+#define H_530093_SRC_NEURAL_NET 1
+
+#include "NeuralNet.fwd.hpp"
+#include "Neuron.fwd.hpp"
 
 #include <mutex>
 #include <vector>
 
 #include "TrainingExample.hpp"
-#include "Neuron.hpp"
 #include "utils.hpp"
 
 
@@ -20,9 +22,12 @@ namespace ai_assignment
      */
     class NeuralNet
     {
-        typedef TrainingExample<std::vector<double>> Example;
-                
         public:
+
+            // Definitions
+            
+            typedef TrainingExample<std::vector<double>> Example;
+
 
             // Constructors
 
@@ -38,7 +43,7 @@ namespace ai_assignment
             NeuralNet(
                 const vector<size_t> netArchitecture,
                 const size_t inputs,
-                const vector< activation_func_type > activationFunctions,
+                const vector< Neuron::activation_func_type > activationFunctions,
                 vector< vector < vector< double >* > > *startingWeights = nullptr
             );
 
@@ -125,7 +130,7 @@ namespace ai_assignment
             void InitialiseNeurons(
                 const vector<size_t> &netArchitecture,
                 const size_t inputs,
-                const vector< activation_func_type > &activationFunctions,
+                const vector< Neuron::activation_func_type > &activationFunctions,
                 vector< vector < vector< double >* > > *startingWeights = nullptr
             );
     };
@@ -133,4 +138,4 @@ namespace ai_assignment
 } // End namespace ai_assignment
 
 
-#endif // H_530093_SRC_NET
+#endif // H_530093_SRC_NEURAL_NET

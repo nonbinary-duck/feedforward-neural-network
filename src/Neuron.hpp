@@ -2,6 +2,9 @@
 #ifndef H_530093_SRC_NEURON
 #define H_530093_SRC_NEURON 1
 
+#include "Neuron.fwd.hpp"
+#include "NeuralNet.fwd.hpp"
+
 #include <functional>
 #include <stdexcept>
 #include <random>
@@ -12,8 +15,6 @@
 
 namespace ai_assignment
 {
-    typedef std::function<double(const double&)> activation_func_type;
-
     /**
      * @brief An artificial 'neuron', not thread safe
      */
@@ -22,10 +23,13 @@ namespace ai_assignment
         // Declarations
 
         friend NeuralNet;
-        typedef TrainingExample<double> Example;
         
 
         public:
+
+            // Definitions
+            typedef TrainingExample<double> Example;
+            typedef std::function<double(const double&)> activation_func_type;
 
             // Constructors
 

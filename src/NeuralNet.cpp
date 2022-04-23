@@ -8,7 +8,7 @@ namespace ai_assignment
     NeuralNet::NeuralNet(
                 const vector<size_t> netArchitecture,
                 const size_t inputs,
-                const vector< activation_func_type > activationFunctions,
+                const vector< Neuron::activation_func_type > activationFunctions,
                 vector< vector < vector< double >* > > *startingWeights
             )
         : m_NetArchitecture(netArchitecture), m_Inputs(inputs)
@@ -16,7 +16,7 @@ namespace ai_assignment
         this->InitialiseNeurons(netArchitecture, inputs, activationFunctions, startingWeights);
 
         // Dispose of the starting weights collection, we don't need the collection any more
-        delete startingWeights;
+        if (startingWeights != nullptr) delete startingWeights;
     }
 
     NeuralNet::NeuralNet(const NeuralNet &obj) noexcept
@@ -57,8 +57,10 @@ namespace ai_assignment
         // The copy is neccicary so that we keep the very last value (bias/threshold)
         vector<double> outputs = vector<double>(inputs);
         vector<double> *finalOutputs = new vector<double>(
-            this->m_NetArchitecture.at(layerCount - 1) - 1
+            this->m_NetArchitecture.at(layerCount - 1)
         );
+
+        size_t a = finalOutputs->size();
 
         for (size_t i = 0; i < layerCount; i++)
         {
@@ -123,18 +125,18 @@ namespace ai_assignment
 
         // Create a place to store error terms for the neurons
         // Include the hidden error terms
-        auto errorTerms = vector<vector<double>>(this->m_NetArchitecture.size() + 1);
+        auto errorTerms = vector<vector<double>>(this->m_NetArchitecture.size());
 
         // Get the mean variance from the example to return
         double returnErr = 0.0;
 
         // Initalise it for the outputs
-        errorTerms[this->m_NetArchitecture.size()] = vector<double>(out->size());
+        errorTerms[this->m_NetArchitecture.size() - 1] = vector<double>(out->size());
 
         for (size_t k = 0; k < out->size(); k++)
         {
             // T4.3
-            errorTerms[this->m_NetArchitecture.size()][k] = out->at(k) * (
+            errorTerms[this->m_NetArchitecture.size() - 1][k] = out->at(k) * (
                 1.0 -
                 out->at(k) *
                 (
@@ -147,7 +149,8 @@ namespace ai_assignment
             returnErr += trainingExample.targetOutput[k] - out->at(k);
         } 
 
-        returnErr /= out->size();
+        // Get the median and the absolute value
+        returnErr = std::abs( returnErr / out->size() );
 
         // We're done with the output, free it from the heap
         delete out;
@@ -170,6 +173,8 @@ namespace ai_assignment
                 // Loop over the neurons in front of us and multiply their error term with the weight assigned to the input they take from us
                 for (size_t k = 0; k < this->m_NetArchitecture[i + 1]; k++)
                 {
+                    auto f = this->m_NetArchitecture.size();
+                    
                     // j is the input they take from us, i is the layer ahead and k is the node in that layer ahead
                     sumErr += this->m_Architecture[i + 1][k]->m_Weights->at(j)
                         // We then get the error term of that node
@@ -200,10 +205,12 @@ namespace ai_assignment
                     this->m_Architecture[i][j]->m_Weights->at(k) += learningRate * (
                         errorTerms[i][j] *
                         // The input to this weight of the neuron
-                        (i == 0)?
-                            trainingExample.inputs.at(k)
-                            :
-                            sharedOutputCache->at(i - 1).at(k)
+                        (
+                            (i == 0)?
+                                trainingExample.inputs.at(k)
+                                :
+                                sharedOutputCache->at(i - 1).at(k)
+                        )
                     );
                 }
                 
@@ -221,7 +228,7 @@ namespace ai_assignment
     void NeuralNet::InitialiseNeurons(
         const vector<size_t> &netArchitecture,
         const size_t inputs,
-        const vector< activation_func_type > &activationFunctions,
+        const vector< Neuron::activation_func_type > &activationFunctions,
         vector< vector < vector< double >* > > *startingWeights
     )
     {
@@ -246,7 +253,7 @@ namespace ai_assignment
                     
                     // Crete a new neuron using the provided weights
                     this->m_Architecture.at(i).at(j) = new Neuron(
-                        inputs,
+                        inputs - 1,
                         startingWeights->at(i).at(j),
                         activationFunctions[i]
                     );

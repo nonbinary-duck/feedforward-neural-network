@@ -7,7 +7,7 @@ using std::cout, std::endl, std::vector;
 
 #include "src/utils.hpp"
 #include "src/Neuron.hpp"
-#include "src/OldNeuron.hpp"
+#include "src/NeuralNet.hpp"
 #include "src/activation_functions.hpp"
 
 using namespace ai_assignment;
@@ -17,70 +17,67 @@ int main()
     // Initalise a 'random' seed for std::rand
     std::srand( std::time(nullptr) );
     
-    vector<double> weights { 0.0, 0.0, 1.0 };
-    vector<vector<double>> inputs
+    auto *startingWeights = new vector< vector < vector< double >* > >
+    (
+        {
+            { // Layer 0
+                new vector< double >({ // Neuron 0
+                    0.5,
+                    -0.2,
+                    0.5
+                }),
+                new vector< double >({ // Neuron 1
+                    0.1,
+                    0.2,
+                    0.3
+                })
+            },
+            { // Layer 1
+                new vector< double >({ // Neuron 0
+                    0.7,
+                    0.6,
+                    0.2
+                }),
+                new vector< double >({ // Neuron 1
+                    0.9,
+                    0.8,
+                    0.4
+                })
+            }
+        }
+    );
+    
+    NeuralNet *n = new NeuralNet(
+        vector<size_t>{2, 2},
+        3,
+        vector<Neuron::activation_func_type>
+        {
+            activation_functions::sigmoidFunc,
+            activation_functions::noFunc
+        },
+        startingWeights
+    );
+
+    auto ex = vector< NeuralNet::Example >
+    (
+        {
+            {
+                .inputs = { 0.0, 1.0, 1.0 },
+                .targetOutput = { 1.0, 1.0 }
+            }
+        }
+    );
+
+    auto out = n->ProcessInputs({0.0, 1.0, 1.0});
+
+    for (size_t i = 0; i < out->size(); i++)
     {
-        { 0.0, 0.0, 1.0  },
-        { 0.0, 1.0, 1.0  },
-        { 1.0, 0.0, 1.0  },
-        { 1.0, 1.0, 1.0  }
-    };
-
-    Neuron n(2, weights, activation_functions::sigmoidFunc);
-    OldNeuron nOld(2, weights, activation_functions::sigmoidFunc);
-
-    typedef TrainingExample<double> TE;
-
-    vector<TE> ex
-    {
-        TE({0.0, 0.0, 1.0}, 0.0),
-        TE({0.0, 1.0, 1.0}, 1.0),
-        TE({1.0, 0.0, 1.0}, 1.0),
-        TE({1.0, 1.0, 1.0}, 1.0)
-    };
-
-    double previous;
-    double current;
-    size_t it = 0;
-
-    for (size_t i = 0; i < 10000; i++)
-    {
-        current = n.TrainNeuron(ex, 0.05);
-        
-        if (it == 0 && previous == current) {it = i;}
-        
-        cout << "er: " << current << " Δ" << previous - current << ((it != 0)? " :: mse reached equilibrium at " + std::to_string(it) : "") << endl;
-
-        if (it != 0) break;
-        
-        previous = current;
+        cout << out->at(i) << endl;
     }
+    
+    delete out;
 
-    previous = 0.0;
-    current = 0.0;
-    it = 0;
-
-    for (size_t i = 0; i < 10000; i++)
-    {
-        current = nOld.TrainNeuron(ex, 0.05);
-        
-        if (it == 0 && previous == current) {it = i;}
-        
-        cout << "old er: " << current << " Δ" << previous - current << ((it != 0)? " :: mse reached equilibrium at " + std::to_string(it) : "") << endl;
-
-        if (it != 0) break;
-        
-        previous = current;
-    }
-
-    for (size_t i = 0; i < inputs.size(); i++)
-    {
-        cout << "Input " << i << ": " << n.ProcessInputs(inputs[i]) << endl;
-        cout << "OldInput " << i << ": " << nOld.ProcessInputs(inputs[i]) << endl;
-    }
-
-    utils::printWeights(&n);
-    utils::printWeights(&nOld);
+    n->TrainNetwork(ex, 0.05);
 
     return 0;
 }
