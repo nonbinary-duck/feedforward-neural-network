@@ -120,17 +120,98 @@ namespace ai_assignment
     {
         // Propagate the input forward through the network
         auto out = this->ProcessInputs(trainingExample.inputs, sharedOutputCache);
-        auto errorTerms = vector<double>(out->size());
+
+        // Create a place to store error terms for the neurons
+        // Include the hidden error terms
+        auto errorTerms = vector<vector<double>>(this->m_NetArchitecture.size() + 1);
+
+        // Get the mean variance from the example to return
+        double returnErr = 0.0;
+
+        // Initalise it for the outputs
+        errorTerms[this->m_NetArchitecture.size()] = vector<double>(out->size());
 
         for (size_t k = 0; k < out->size(); k++)
         {
             // T4.3
-            errorTerms[k] = out->at(k) * (1.0 - out->at(k) * (trainingExample.targetOutput[k] - out->at(k)));
+            errorTerms[this->m_NetArchitecture.size()][k] = out->at(k) * (
+                1.0 -
+                out->at(k) *
+                (
+                    trainingExample.targetOutput[k] -
+                    out->at(k)
+                )
+            );
+
+            // (t - o)
+            returnErr += trainingExample.targetOutput[k] - out->at(k);
+        } 
+
+        returnErr /= out->size();
+
+        // We're done with the output, free it from the heap
+        delete out;
+
+        // Loop over the neurons back to front to "backpropigate"
+        // Needs to be signed otherwise it'll underflow to 2⁶⁴ - 1
+        // Exclude the output layer, which was already accounted for
+        for (long i = this->m_NetArchitecture.size() - 2; i >= 0; i--)
+        {
+            // Initalise it to the correct size
+            errorTerms[i] = vector<double>(this->m_NetArchitecture[i]);
+            
+            // Loop over each unit in this layer
+            for (size_t j = 0; j < this->m_NetArchitecture[i]; j++)
+            {
+                // T4.4
+                double sumErr = 0.0;
+
+                // Σ weight of node in front ⨉ error of node in front
+                // Loop over the neurons in front of us and multiply their error term with the weight assigned to the input they take from us
+                for (size_t k = 0; k < this->m_NetArchitecture[i + 1]; k++)
+                {
+                    // j is the input they take from us, i is the layer ahead and k is the node in that layer ahead
+                    sumErr += this->m_Architecture[i + 1][k]->m_Weights->at(j)
+                        // We then get the error term of that node
+                        * errorTerms[i + 1][k];
+                }
+                
+                // Cache the result of the output of this neuron
+                // Slower, but looks neater
+                double o = sharedOutputCache->at(i).at(j);
+
+                errorTerms[i][j] = o * (1.0 - o) * sumErr;
+            }
         }
 
-        delete &out;
-
-        return -1;
+        // Then update the network weights
+        // Every layer
+        for (size_t i = 0; i < this->m_NetArchitecture.size(); i++)
+        {
+            // Every neuron
+            for (size_t j = 0; j < this->m_NetArchitecture[i]; j++)
+            {
+                // The weights in that neuron
+                // this->m_Inputs == this->m_Architecture[i][j]->m_Weights->size()
+                for (size_t k = 0; k < this->m_Inputs; k++)
+                {
+                    // T4.5
+                    // To get Δw we need the inputs to this neuron, which could be from another neuron or the example
+                    this->m_Architecture[i][j]->m_Weights->at(k) += learningRate * (
+                        errorTerms[i][j] *
+                        // The input to this weight of the neuron
+                        (i == 0)?
+                            trainingExample.inputs.at(k)
+                            :
+                            sharedOutputCache->at(i - 1).at(k)
+                    );
+                }
+                
+            }
+        }
+        
+        // Return the figure generated earlier as the error mean (t - o)
+        return returnErr;
     }
 
 

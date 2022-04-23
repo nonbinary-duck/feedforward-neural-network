@@ -60,6 +60,20 @@ namespace ai_assignment::utils
         // Dispose
         delete weights;
     }
+
+    inline void printWeights(OldNeuron *n)
+    {
+        // Fetch a copy
+        auto weights = n->GetWeights();
+        
+        for (size_t i = 0; i < weights->size(); i++)
+        {
+            std::cout << "weight " << i << ": " << weights->at(i) << std::endl;
+        }
+        
+        // Dispose
+        delete weights;
+    }
     
 } // End namespace utils
 

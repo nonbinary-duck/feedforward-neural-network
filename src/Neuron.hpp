@@ -19,8 +19,12 @@ namespace ai_assignment
      */
     class Neuron
     {
+        // Declarations
+
+        friend NeuralNet;
         typedef TrainingExample<double> Example;
         
+
         public:
 
             // Constructors
@@ -113,9 +117,8 @@ namespace ai_assignment
              * @param inputs The inputs for this example
              * @param error The error rate from running this example
              * @param learningRate The learning rate, or speed at which weights are modified
-             * @return double The flat error rate (target - output)
              */
-            double TrainNeuron(std::vector<double> &inputs, double error, double &learningRate);
+            void TrainNeuron(std::vector<double> &inputs, double error, double &learningRate);
 
         protected:
 

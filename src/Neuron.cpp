@@ -48,25 +48,24 @@ namespace ai_assignment
         // Loop over the training examples and adjust the mean squared error rate
         for (size_t i = 0; i < trainingExamples.size(); i++)
         {
-            mseErrorRate += std::pow(
-                this->TrainNeuron(
-                    trainingExamples[i].inputs,
-                    (
+            double error = (
                         // Fetch the error term of the inputs
                         // (t - o)
                         trainingExamples[i].targetOutput -
                         this->ProcessInputs(trainingExamples[i].inputs)
-                    ),
-                    learningRate
-                ),
+            );
+            mseErrorRate += std::pow(
+                error,
                 2.0
             );
+
+            this->TrainNeuron(trainingExamples[i].inputs, error,learningRate);
         }
 
         return mseErrorRate / trainingExamples.size();
     }
 
-    double Neuron::TrainNeuron(std::vector<double> &inputs, double error, double &learningRate)
+    void Neuron::TrainNeuron(std::vector<double> &inputs, double error, double &learningRate)
     {
         // Compute "for each linear unit weight wᵢ..."
         for (size_t j = 0; j < this->InputCount + 1; j++)
@@ -78,8 +77,6 @@ namespace ai_assignment
             // 
             this->m_Weights->at(j) += learningRate * error * inputs[j];
         }
-
-        return error;
     }
 
 

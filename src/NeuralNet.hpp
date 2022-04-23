@@ -21,7 +21,7 @@ namespace ai_assignment
     class NeuralNet
     {
         typedef TrainingExample<std::vector<double>> Example;
-        
+                
         public:
 
             // Constructors
