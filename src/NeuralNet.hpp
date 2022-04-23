@@ -93,7 +93,7 @@ namespace ai_assignment
 
 
             /**
-             * @brief Runs through the net and returns the results
+             * @brief Runs through the net and returns the results. Not thread safe
              * 
              * @param inputs The inputs to the net. The last value of the inputs is the bias/threshold which is in all layers until overwritten by a neuron
              * @param recordedOutputs If provided, records each individual output. This excludes the final output, and should therefore have a size of layers * inputs
@@ -102,13 +102,13 @@ namespace ai_assignment
             vector<double> *ProcessInputs(vector<double> inputs, vector<vector<double>> *recordedOutputs = nullptr);
 
             /**
-             * @brief Trains the neural network for one epoch, then returns the MSE. Thread safe
+             * @brief Trains the neural network until the mean squared error stops changing. Thread safe
              * 
              * @param trainingExamples Examples to give the net for it to "learn"
              * @param learningRate The learning rate
-             * @return double The mean squared error (MSE) over the training examples (error of the net: netTarget - netOutput)
+             * @return The number of epochs taken to fully train the network
              */
-            double TrainNetwork(vector<Example> &trainingExamples, double learningRate);
+            size_t TrainNetwork(vector<Example> &trainingExamples, double learningRate);
 
             /**
              * @brief Trains the neural network for one epoch, then returns the error rate. Not thread safe

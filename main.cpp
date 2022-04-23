@@ -45,35 +45,45 @@ int main()
     (
         {
             { // Layer 0
-                new vector< double >({ // Neuron 0
-                    0.5,
-                    -0.2,
-                    0.5
+                new vector< double >({ // Neuron a4
+                    0.74,
+                    0.8,
+                    0.35,
+                    0.9
                 }),
-                new vector< double >({ // Neuron 1
+                new vector< double >({ // Neuron a5
+                    0.13,
+                    0.4,
+                    0.97,
+                    0.45,
+                }),
+                new vector< double >({ // Neuron a6
+                    0.68,
                     0.1,
-                    0.2,
-                    0.3
+                    0.96,
+                    0.36
                 })
             },
             { // Layer 1
-                new vector< double >({ // Neuron 0
-                    0.7,
-                    0.6,
-                    0.2
-                }),
-                new vector< double >({ // Neuron 1
+                new vector< double >({ // Neuron a7
+                    0.35,
+                    0.5,
                     0.9,
+                    0.98
+                }),
+                new vector< double >({ // Neuron a8
                     0.8,
-                    0.4
+                    0.13,
+                    0.8,
+                    0.92
                 })
             }
         }
     );
     
     NeuralNet *n = new NeuralNet(
-        vector<size_t>{2, 2},
-        3,
+        vector<size_t>{3, 2},
+        4,
         vector<Neuron::activation_func_type>
         {
             activation_functions::sigmoidFunc,
@@ -86,24 +96,42 @@ int main()
     (
         {
             {
-                .inputs = { 0.0, 1.0, 1.0 },
-                .targetOutput = { 1.0, 1.0 }
+                .inputs = { 0.5, 1.0, 0.75, 1.0 },
+                .targetOutput = { 1.0, 0.0 }
+            },
+            {
+                .inputs = { 1.0, 0.5, 0.75, 1.0 },
+                .targetOutput = { 1.0, 0.0 }
+            },
+            {
+                .inputs = { 1.0, 1.0, 1.0, 1.0 },
+                .targetOutput = { 1.0, 0.0 }
+            },
+            {
+                .inputs = { -0.01, 0.5, 0.25, 1.0 },
+                .targetOutput = { 0.0, 1.0 }
+            },
+            {
+                .inputs = { 0.5, -0.25, 0.13, 1.0 },
+                .targetOutput = { 0.0, 1.0 }
+            },
+            {
+                .inputs = { 0.01, 0.02, 0.05, 1.0 },
+                .targetOutput = { 0.0, 1.0 }
             }
         }
     );
 
-    auto out = n->ProcessInputs({0.0, 1.0, 1.0});
+    cout << n->TrainNetwork(ex, 0.1) << endl;
+
+    utils::printWeights(n);
+
+    auto out = n->ProcessInputs({0.3, 0.7, 0.9, 1.0});
 
     for (size_t i = 0; i < out->size(); i++)
     {
         cout << out->at(i) << endl;
     }
-    
-    delete out;
-
-    n->TrainNetwork(ex, 0.1);
-
-    utils::printWeights(n);
 
     return 0;
 }

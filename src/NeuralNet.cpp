@@ -61,8 +61,6 @@ namespace ai_assignment
             this->m_NetArchitecture.at(layerCount - 1)
         );
 
-        size_t a = finalOutputs->size();
-
         for (size_t i = 0; i < layerCount; i++)
         {
             for (size_t j = 0; j < this->m_NetArchitecture.at(i); j++)
@@ -94,29 +92,42 @@ namespace ai_assignment
         return finalOutputs;
     }
 
-    double NeuralNet::TrainNetwork(vector<Example> &trainingExamples, double learningRate)
+    size_t NeuralNet::TrainNetwork(vector<Example> &trainingExamples, double learningRate)
     {
         // Acquire lock
         auto scopedLock = std::scoped_lock(this->m_Lock);
         double mse = 0.0;
+        double previousMSE;
+        size_t epochs = 0;
 
-        // Setup the storage for the results
-        auto *outputCache = new vector<vector<double>>(this->m_NetArchitecture.size());
-
-        for (size_t i = 0; i < outputCache->size(); i++)
+        beginEpoch:
         {
-            outputCache->at(i) = vector<double>(this->m_Inputs);
-        }
-        
-        for (size_t i = 0; i < trainingExamples.size(); i++)
-        {
-            mse += std::pow(
-                this->TrainNetwork(trainingExamples[i], learningRate, outputCache),
-                2.0
-            );
+            // Copy the last mse to be the previous one
+            previousMSE = mse;
+            mse = 0.0;
+            epochs++;
+            
+            // Setup the storage for the results
+            auto *outputCache = new vector<vector<double>>(this->m_NetArchitecture.size());
+
+            for (size_t i = 0; i < outputCache->size(); i++)
+            {
+                outputCache->at(i) = vector<double>(this->m_Inputs);
+            }
+            
+            for (size_t i = 0; i < trainingExamples.size(); i++)
+            {
+                mse += std::pow(
+                    this->TrainNetwork(trainingExamples[i], learningRate, outputCache),
+                    2.0
+                ) / trainingExamples.size();
+            }
+
+            // Continue in a loop until the mean squared error stops changing
+            if (mse != previousMSE) goto beginEpoch;
         }
 
-        return (mse / trainingExamples.size());
+        return epochs;
     }
 
     double NeuralNet::TrainNetwork(Example &trainingExample, double &learningRate, vector<vector<double>> *sharedOutputCache)
@@ -137,19 +148,21 @@ namespace ai_assignment
         for (size_t k = 0; k < out->size(); k++)
         {
             // T4.3
-            errorTerms[this->m_Architecture.size() - 1][k] =
-            (
-                out->at(k) *
-                (1.0 - out->at(k)) *
-                (trainingExample.targetOutput[k] - out->at(k))
-            );
+            // errorTerms[this->m_Architecture.size() - 1][k] =
+            // (
+            //     (
+            //         out->at(k) *
+            //         (
+            //             1.0 -
+            //             out->at(k)
+            //         )
+            //     ) *
+            //     (
+            //         trainingExample.targetOutput[k] - out->at(k)
+            //     )
+            // );
 
-            errorTerms[this->m_Architecture.size() - 1][k] =
-            (
-                trainingExample.targetOutput[k] - out->at(k)
-            );
-
-            double a = errorTerms[this->m_NetArchitecture.size() - 1][k];
+            errorTerms[this->m_Architecture.size() - 1][k] = trainingExample.targetOutput[k] - out->at(k);
 
             // (t - o)
             returnErr += trainingExample.targetOutput[k] - out->at(k);
@@ -206,24 +219,19 @@ namespace ai_assignment
                 {
                     // T4.5
                     // To get Δw we need the inputs to this neuron, which could be from another neuron or the example
-
-                    double e = errorTerms[i][j];
-                    double e1 = (i == 0)?
-                                trainingExample.inputs.at(k)
-                                :
-                                sharedOutputCache->at(i - 1).at(k);
-                    double delta = learningRate * (
-                        errorTerms[i][j] *
-                        // The input to this weight of the neuron
-                        (
-                            (i == 0)?
-                                trainingExample.inputs.at(k)
-                                :
-                                sharedOutputCache->at(i - 1).at(k)
+                    this->m_Architecture[i][j]->m_Weights->at(k) +=
+                    (
+                        learningRate * (
+                            errorTerms[i][j] *
+                            // The input to this weight of the neuron
+                            (
+                                (i == 0)?
+                                    trainingExample.inputs.at(k)
+                                    :
+                                    sharedOutputCache->at(i - 1).at(k)
+                            )
                         )
                     );
-
-                    this->m_Architecture[i][j]->m_Weights->at(k) += delta;
                 }
                 
             }
