@@ -1,4 +1,5 @@
 #include "NeuralNet.hpp"
+#include <iostream>
 
 
 namespace ai_assignment
@@ -86,7 +87,7 @@ namespace ai_assignment
             // Record the outputs if it wants us to
             if (recordedOutputs != nullptr)
             {
-                if (i + 1 == layerCount) recordedOutputs->at(i) = outputs;
+                recordedOutputs->at(i) = outputs;
             }
         }
 
@@ -136,14 +137,19 @@ namespace ai_assignment
         for (size_t k = 0; k < out->size(); k++)
         {
             // T4.3
-            errorTerms[this->m_NetArchitecture.size() - 1][k] = out->at(k) * (
-                1.0 -
+            errorTerms[this->m_Architecture.size() - 1][k] =
+            (
                 out->at(k) *
-                (
-                    trainingExample.targetOutput[k] -
-                    out->at(k)
-                )
+                (1.0 - out->at(k)) *
+                (trainingExample.targetOutput[k] - out->at(k))
             );
+
+            errorTerms[this->m_Architecture.size() - 1][k] =
+            (
+                trainingExample.targetOutput[k] - out->at(k)
+            );
+
+            double a = errorTerms[this->m_NetArchitecture.size() - 1][k];
 
             // (t - o)
             returnErr += trainingExample.targetOutput[k] - out->at(k);
@@ -173,8 +179,6 @@ namespace ai_assignment
                 // Loop over the neurons in front of us and multiply their error term with the weight assigned to the input they take from us
                 for (size_t k = 0; k < this->m_NetArchitecture[i + 1]; k++)
                 {
-                    auto f = this->m_NetArchitecture.size();
-                    
                     // j is the input they take from us, i is the layer ahead and k is the node in that layer ahead
                     sumErr += this->m_Architecture[i + 1][k]->m_Weights->at(j)
                         // We then get the error term of that node
@@ -202,7 +206,13 @@ namespace ai_assignment
                 {
                     // T4.5
                     // To get Δw we need the inputs to this neuron, which could be from another neuron or the example
-                    this->m_Architecture[i][j]->m_Weights->at(k) += learningRate * (
+
+                    double e = errorTerms[i][j];
+                    double e1 = (i == 0)?
+                                trainingExample.inputs.at(k)
+                                :
+                                sharedOutputCache->at(i - 1).at(k);
+                    double delta = learningRate * (
                         errorTerms[i][j] *
                         // The input to this weight of the neuron
                         (
@@ -212,6 +222,8 @@ namespace ai_assignment
                                 sharedOutputCache->at(i - 1).at(k)
                         )
                     );
+
+                    this->m_Architecture[i][j]->m_Weights->at(k) += delta;
                 }
                 
             }

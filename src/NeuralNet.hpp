@@ -5,11 +5,13 @@
 #include "NeuralNet.fwd.hpp"
 #include "Neuron.fwd.hpp"
 
+#include <cmath>
 #include <mutex>
 #include <vector>
 
-#include "TrainingExample.hpp"
 #include "utils.hpp"
+#include "Neuron.hpp"
+#include "TrainingExample.hpp"
 
 
 namespace ai_assignment
@@ -64,6 +66,28 @@ namespace ai_assignment
                 utils::releaseVecValues<Neuron>(this->m_Architecture);
             }
 
+            // Accessors
+
+            /**
+             * @brief Get a copy of all of the weights in the network
+             */
+            inline vector<vector<vector<double>>> *GetWeights() const noexcept
+            {
+                auto *out = new vector<vector<vector<double>>>(this->m_Architecture.size());
+
+                for (size_t i = 0; i < out->size(); i++)
+                {
+                    out->at(i) = vector<vector<double>>(this->m_NetArchitecture.at(i));
+                    
+                    for (size_t j = 0; j < out->at(i).size(); j++)
+                    {
+                        // Create a copy on the "stack" of the heap of the output of each neuron's weight
+                        out->at(i).at(j) = vector<double>(*this->m_Architecture.at(i).at(j)->m_Weights);
+                    }
+                }
+
+                return out;
+            }
 
             // Functions
 

@@ -12,6 +12,30 @@ using std::cout, std::endl, std::vector;
 
 using namespace ai_assignment;
 
+namespace ai_assignment::utils
+{
+    inline void printWeights(NeuralNet *n)
+    {
+        // Fetch a copy
+        auto *weights = n->GetWeights();
+        
+        for (size_t i = 0; i < weights->size(); i++)
+        {
+            for (size_t j = 0; j < weights->at(i).size(); j++)
+            {
+                for (size_t k = 0; k < weights->at(i).at(j).size(); k++)
+                {
+                    std::cout << "layer: " << i << " neuron: " << j << " weight: " << k << ": " << weights->at(i).at(j).at(k) << std::endl;
+                }
+            }
+        }
+        
+        // Dispose
+        delete weights;
+    }
+} // End namespace utils
+
+
 int main()
 {
     // Initalise a 'random' seed for std::rand
@@ -77,7 +101,9 @@ int main()
     
     delete out;
 
-    n->TrainNetwork(ex, 0.05);
+    n->TrainNetwork(ex, 0.1);
+
+    utils::printWeights(n);
 
     return 0;
 }
