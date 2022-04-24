@@ -122,16 +122,20 @@ int main()
         }
     );
 
-    cout << n->TrainNetwork(ex, 0.1) << endl;
+    cout << "Network trained for " << n->TrainNetwork(ex, 0.1) << " epochs" << endl << endl;
 
     utils::printWeights(n);
 
-    auto out = n->ProcessInputs({0.3, 0.7, 0.9, 1.0});
+    auto *out = n->ProcessInputs({0.3, 0.7, 0.9, 1.0});
+
+    cout << endl << "Outputs of unseen input:" << endl;
 
     for (size_t i = 0; i < out->size(); i++)
     {
-        cout << out->at(i) << endl;
+        cout << 'y' << i + 1 << ": " << out->at(i) << endl;
     }
+
+    delete out;
 
     return 0;
 }
