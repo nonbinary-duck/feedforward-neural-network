@@ -58,7 +58,10 @@
         "stop_token": "cpp",
         "list": "cpp",
         "cstring": "cpp",
-        "fstream": "cpp"
+        "fstream": "cpp",
+        "filesystem": "cpp",
+        "codecvt": "cpp",
+        "iomanip": "cpp"
     },
     "C_Cpp.default.cppStandard": "c++20"
 }

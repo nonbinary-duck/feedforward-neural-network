@@ -1,5 +1,4 @@
 #include "NeuralNet.hpp"
-#include <iostream>
 
 
 namespace ai_assignment
@@ -51,16 +50,16 @@ namespace ai_assignment
         
         if (inputCount != this->m_Inputs) throw std::invalid_argument("Input provided doesn't match architecture");
         
-        // Execute the neurons layer-by-layer
-        size_t layerCount = this->m_NetArchitecture.size();
-
         // Create a copy of the inputs to store outputs in
         // The copy is neccicary so that we keep the very last value (bias/threshold)
+        size_t layerCount = this->m_NetArchitecture.size();
+
         vector<double> outputs = vector<double>(inputs);
         vector<double> *finalOutputs = new vector<double>(
             this->m_NetArchitecture.at(layerCount - 1)
         );
 
+        // Execute the neurons layer-by-layer
         for (size_t i = 0; i < layerCount; i++)
         {
             for (size_t j = 0; j < this->m_NetArchitecture.at(i); j++)
@@ -83,10 +82,7 @@ namespace ai_assignment
             inputs = outputs;
 
             // Record the outputs if it wants us to
-            if (recordedOutputs != nullptr)
-            {
-                recordedOutputs->at(i) = outputs;
-            }
+            if (recordedOutputs != nullptr) recordedOutputs->at(i) = outputs;
         }
 
         return finalOutputs;
@@ -96,20 +92,40 @@ namespace ai_assignment
     {
         // Acquire lock
         auto scopedLock = std::scoped_lock(this->m_Lock);
-        double mse = 0.0;
+
+        // Setthe first mean squared error to an arbitrarily large value to avoid thinking that it's getting worse on the first iteration
+        double mse = 1E300;
         double previousMSE;
         size_t epochs = 0;
 
-        beginEpoch:
+        // Setup the storage for the results
+        auto *outputCache = new vector<vector<double>>(this->m_NetArchitecture.size());
+        // Cache the current weights to go back if we're not improving the situation
+        auto *prevWeights = this->GetWeights();
+        // And run the same method to give us a properly initialised object to store new weights in
+        auto *newWeights = this->GetWeights();
+        
+        // Places to write to for the assignment
+        // File writing code snippet taken from https://en.cppreference.com/w/cpp/io/manip/setprecision
+        std::fstream errCsv;
+        errCsv.open("err.csv");
+        std::fstream weightsCsv;
+        weightsCsv.open("weights.csv");
+
+        weightsCsv << std::setprecision(std::numeric_limits<double>::digits10 + 1);
+        errCsv << std::setprecision(std::numeric_limits<double>::digits10 + 1);
+
+        // Loop until break
+        while (true)
         {
+            // Print the weights to the output file (very slow)
+            this->PrintWeights(weightsCsv);
+            
             // Copy the last mse to be the previous one
             previousMSE = mse;
             mse = 0.0;
             epochs++;
             
-            // Setup the storage for the results
-            auto *outputCache = new vector<vector<double>>(this->m_NetArchitecture.size());
-
             for (size_t i = 0; i < outputCache->size(); i++)
             {
                 outputCache->at(i) = vector<double>(this->m_Inputs);
@@ -117,20 +133,49 @@ namespace ai_assignment
             
             for (size_t i = 0; i < trainingExamples.size(); i++)
             {
-                mse += std::pow(
-                    this->TrainNetwork(trainingExamples[i], learningRate, outputCache),
-                    2.0
-                ) / trainingExamples.size();
+                mse += this->TrainNetwork(trainingExamples[i], learningRate, outputCache, newWeights);
             }
 
-            // Continue in a loop until the mean squared error stops changing
-            if (mse != previousMSE) goto beginEpoch;
+            mse /= trainingExamples.size();
+
+            errCsv << epochs << ',' << mse << std::endl;
+
+            // If this epoch has made things worse, revert that epoch and end the training
+            if (mse > previousMSE)
+            {
+                // Log the weights from this epoch
+                this->PrintWeights(weightsCsv);
+                // Update to the previous weights
+                this->SetWeights(prevWeights);
+                // Log the final weights
+                // But label that data
+                weightsCsv << "# Revert update ↓" << std::endl;
+                this->PrintWeights(weightsCsv);
+                // Exit
+                break;
+            }
+
+            // Break when epoch 135 has finished, as discussed in the assignment.
+            if (epochs == 135) break;
+
+            // Otherwise, continue in a loop until the mean squared error stops changing
+            if (mse == previousMSE) break;
+
+            // Copy the new weights into the previous weights so we can revert to them if the training went badly
+            *prevWeights = *newWeights;
         }
+
+        // Cleanup
+        errCsv.close();
+        weightsCsv.close();
+        delete outputCache;
+        delete prevWeights;
+        delete newWeights;
 
         return epochs;
     }
 
-    double NeuralNet::TrainNetwork(Example &trainingExample, double &learningRate, vector<vector<double>> *sharedOutputCache)
+    double NeuralNet::TrainNetwork(Example &trainingExample, double &learningRate, vector<vector<double>> *sharedOutputCache, weight_type *newWeights)
     {
         // Propagate the input forward through the network
         auto out = this->ProcessInputs(trainingExample.inputs, sharedOutputCache);
@@ -164,12 +209,10 @@ namespace ai_assignment
 
             errorTerms[this->m_Architecture.size() - 1][k] = trainingExample.targetOutput[k] - out->at(k);
 
-            // (t - o)
-            returnErr += trainingExample.targetOutput[k] - out->at(k);
-        } 
-
-        // Get the median and the absolute value
-        returnErr = std::abs( returnErr / out->size() );
+            // (t - o)²
+            // Squared error
+            returnErr += std::pow(trainingExample.targetOutput[k] - out->at(k), 2);
+        }
 
         // We're done with the output, free it from the heap
         delete out;
@@ -232,12 +275,16 @@ namespace ai_assignment
                             )
                         )
                     );
+
+                    // Give the caller the new weights
+                    newWeights->at(i).at(j).at(k) = this->m_Architecture[i][j]->m_Weights->at(k);
                 }
                 
             }
         }
         
-        // Return the figure generated earlier as the error mean (t - o)
+        // Return the figure generated earlier as the square error (t - o)
+        // We squared it earlier, which also means we have the absolute value
         return returnErr;
     }
 

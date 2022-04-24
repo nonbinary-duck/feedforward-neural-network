@@ -8,6 +8,10 @@
 #include <cmath>
 #include <mutex>
 #include <vector>
+#include <cstring>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
 
 #include "utils.hpp"
 #include "Neuron.hpp"
@@ -28,7 +32,8 @@ namespace ai_assignment
 
             // Definitions
             
-            typedef TrainingExample<std::vector<double>> Example;
+            typedef TrainingExample<std::vector<double>>    Example;
+            typedef vector<vector<vector<double>>>          weight_type;
 
 
             // Constructors
@@ -71,9 +76,9 @@ namespace ai_assignment
             /**
              * @brief Get a copy of all of the weights in the network
              */
-            inline vector<vector<vector<double>>> *GetWeights() const noexcept
+            inline weight_type *GetWeights() const noexcept
             {
-                auto *out = new vector<vector<vector<double>>>(this->m_Architecture.size());
+                auto *out = new weight_type(this->m_Architecture.size());
 
                 for (size_t i = 0; i < out->size(); i++)
                 {
@@ -87,6 +92,45 @@ namespace ai_assignment
                 }
 
                 return out;
+            }
+
+            inline void SetWeights(weight_type *newWeights) const noexcept
+            {
+                for (size_t i = 0; i < newWeights->size(); i++)
+                {
+                    for (size_t j = 0; j < newWeights->at(i).size(); j++)
+                    {
+                        // Create a copy on the "stack" of the heap of the output of each neuron's weight
+                        *this->m_Architecture.at(i).at(j)->m_Weights = newWeights->at(i).at(j);
+                    }
+                }
+            }
+
+            /**
+             * @brief Prints the weights to a csv file stream
+             */
+            inline void PrintWeights(std::fstream &out) const noexcept
+            {
+                auto *w = this->GetWeights();
+
+                // Each layer
+                for (size_t i = 0; i < w->size(); i++)
+                {
+                    // Each neuron
+                    for (size_t j = 0; j < w->at(i).size(); j++)
+                    {
+                        // Each weight
+                        for (size_t k = 0; k < w->at(i).at(j).size(); k++)
+                        {
+                            // Amend the weight to the file
+                            out << w->at(i).at(j).at(k) << ',';
+                        }
+                    }
+                }
+
+                out << std::endl;
+
+                delete w;
             }
 
             // Functions
@@ -116,9 +160,10 @@ namespace ai_assignment
              * @param trainingExample The example to give the net for it to "learn"
              * @param learningRate The learning rate
              * @param sharedOutputCache A shared variable to reduce overhead
+             * @param newWeights Must be initialised to the correct size. Is set to the new values of the weights as an optimisation step over creating a new loop counter elsewhere
              * @return double The error of the net: netTarget - netOutput
              */
-            double TrainNetwork(Example &trainingExample, double &learningRate, vector<vector<double>> *sharedOutputCache);
+            double TrainNetwork(Example &trainingExample, double &learningRate, vector<vector<double>> *sharedOutputCache, weight_type *newWeights);
 
         protected:
 
